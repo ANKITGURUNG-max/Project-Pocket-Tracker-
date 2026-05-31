@@ -320,6 +320,129 @@
       background: var(--gold-bg);
     }
 
+    /* inline budget editor */
+    .sb-budget-edit-row {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .sb-budget-edit-row.visible {
+      display: flex;
+    }
+
+    .sb-budget-inp {
+      flex: 1;
+      min-width: 0;
+      background: var(--surface3);
+      border: 1px solid var(--gold-dim);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: var(--font-m);
+      font-size: 12px;
+      padding: 5px 8px;
+      outline: none;
+      box-shadow: 0 0 0 2px var(--gold-bg);
+    }
+
+    .sb-budget-save {
+      background: var(--gold);
+      border: none;
+      border-radius: 6px;
+      color: #080809;
+      font-family: var(--font-b);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 5px 9px;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .sb-budget-save:hover {
+      opacity: 0.85;
+    }
+
+    .sb-budget-cancel {
+      background: none;
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      color: var(--muted2);
+      font-family: var(--font-b);
+      font-size: 11px;
+      padding: 5px 7px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .sb-budget-cancel:hover {
+      color: var(--rose);
+      border-color: rgba(240, 85, 110, 0.3);
+    }
+
+    /* streak badge */
+    .streak-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      padding: 10px 14px;
+      margin-bottom: 14px;
+    }
+
+    .streak-flame {
+      font-size: 18px;
+    }
+
+    .streak-info {}
+
+    .streak-val {
+      font-family: var(--font-m);
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--gold);
+    }
+
+    .streak-lbl {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 1px;
+      letter-spacing: 0.3px;
+    }
+
+    /* net delta pill on hero */
+    .hero-delta {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--font-m);
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 99px;
+      margin-bottom: 22px;
+    }
+
+    .hero-delta.pos {
+      background: rgba(62, 207, 142, 0.1);
+      color: var(--emerald);
+      border: 1px solid rgba(62, 207, 142, 0.25);
+    }
+
+    .hero-delta.neg {
+      background: rgba(240, 85, 110, 0.1);
+      color: var(--rose);
+      border: 1px solid rgba(240, 85, 110, 0.25);
+    }
+
+    .hero-delta.neu {
+      background: var(--surface2);
+      color: var(--muted2);
+      border: 1px solid var(--border2);
+    }
+
     /* ═══════════════════════════════════════════════
        MAIN CONTENT
     ═══════════════════════════════════════════════ */
@@ -1119,6 +1242,168 @@
     }
 
     /* ═══════════════════════════════════════════════
+       MOBILE BUDGET BAR
+    ═══════════════════════════════════════════════ */
+    .mob-budget-bar {
+      display: none;
+      background: var(--surface);
+      border-top: 1px solid var(--border2);
+      padding: 10px 16px;
+      position: fixed;
+      bottom: calc(var(--bottom-h) + env(safe-area-inset-bottom, 0px));
+      left: 0;
+      right: 0;
+      z-index: 99;
+    }
+
+    .mob-budget-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 7px;
+    }
+
+    .mob-budget-left {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .mob-budget-label {
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .mob-budget-nums {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .mob-budget-spent {
+      font-family: var(--font-m);
+      font-size: 12px;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .mob-budget-total {
+      font-family: var(--font-m);
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .mob-edit-btn {
+      background: none;
+      border: 1px solid var(--border2);
+      color: var(--muted2);
+      font-family: var(--font-b);
+      font-size: 10px;
+      font-weight: 600;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.18s;
+      white-space: nowrap;
+      flex-shrink: 0;
+      letter-spacing: 0.3px;
+    }
+
+    .mob-edit-btn:active {
+      border-color: var(--gold-dim);
+      color: var(--gold);
+      background: var(--gold-bg);
+    }
+
+    .mob-budget-track {
+      background: var(--surface3);
+      border-radius: 99px;
+      height: 4px;
+      overflow: hidden;
+    }
+
+    .mob-budget-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: var(--gold);
+      transition: width 0.5s cubic-bezier(.23, 1, .32, 1), background 0.3s;
+    }
+
+    .mob-budget-fill.warn {
+      background: var(--amber);
+    }
+
+    .mob-budget-fill.danger {
+      background: var(--rose);
+    }
+
+    /* mobile inline edit row */
+    .mob-edit-row {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .mob-edit-row.visible {
+      display: flex;
+    }
+
+    .mob-budget-inp {
+      flex: 1;
+      min-width: 0;
+      background: var(--surface3);
+      border: 1px solid var(--gold-dim);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: var(--font-m);
+      font-size: 13px;
+      padding: 7px 10px;
+      outline: none;
+      box-shadow: 0 0 0 2px var(--gold-bg);
+    }
+
+    .mob-budget-save {
+      background: var(--gold);
+      border: none;
+      border-radius: 6px;
+      color: #080809;
+      font-family: var(--font-b);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 7px 12px;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    .mob-budget-save:active {
+      opacity: 0.85;
+    }
+
+    .mob-budget-cancel {
+      background: none;
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      color: var(--muted2);
+      font-family: var(--font-b);
+      font-size: 12px;
+      padding: 7px 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .mob-budget-cancel:active {
+      color: var(--rose);
+      border-color: rgba(240, 85, 110, 0.3);
+    }
+
+    /* ═══════════════════════════════════════════════
        BOTTOM TABBAR (mobile)
     ═══════════════════════════════════════════════ */
     .bottom-bar {
@@ -1127,31 +1412,59 @@
       bottom: 0;
       left: 0;
       right: 0;
-      height: var(--bottom-h);
       background: var(--surface);
       border-top: 1px solid var(--border2);
       z-index: 100;
-      padding: 0 8px;
+      /* safe-area for notched phones */
+      padding-bottom: env(safe-area-inset-bottom, 0px);
     }
 
     .bb-inner {
       display: flex;
-      height: 100%;
-      align-items: center;
-      justify-content: space-around;
+      align-items: stretch;
+      height: var(--bottom-h);
+      position: relative;
+    }
+
+    /* sliding pill indicator */
+    .bb-indicator {
+      position: absolute;
+      top: 10px;
+      height: calc(var(--bottom-h) - 20px);
+      width: calc(100% / 3 - 16px);
+      background: var(--gold-bg);
+      border: 1px solid var(--gold-dim);
+      border-radius: 12px;
+      transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+      pointer-events: none;
+      left: 8px;
+    }
+
+    .bb-indicator[data-idx="0"] {
+      transform: translateX(0);
+    }
+
+    .bb-indicator[data-idx="1"] {
+      transform: translateX(calc(100% + 16px));
+    }
+
+    .bb-indicator[data-idx="2"] {
+      transform: translateX(calc(200% + 32px));
     }
 
     .bb-item {
+      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 3px;
-      padding: 8px 16px;
-      border-radius: 10px;
+      justify-content: center;
+      gap: 4px;
       cursor: pointer;
-      transition: all 0.18s;
-      color: var(--muted2);
-      flex: 1;
+      color: var(--muted);
+      transition: color 0.2s;
+      padding: 0 4px;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
 
     .bb-item.active {
@@ -1159,14 +1472,68 @@
     }
 
     .bb-icon {
-      font-size: 18px;
+      width: 22px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .bb-icon svg {
+      width: 20px;
+      height: 20px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transition: stroke 0.2s;
+    }
+
+    .bb-item.active .bb-icon svg {
+      stroke-width: 2;
     }
 
     .bb-label {
       font-size: 9px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
       text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    /* FAB quick-add (mobile only) */
+    .fab {
+      display: none;
+      position: fixed;
+      bottom: calc(var(--bottom-h) + env(safe-area-inset-bottom, 0px) + 16px);
+      right: 16px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--gold);
+      border: none;
+      cursor: pointer;
+      z-index: 99;
+      box-shadow: 0 4px 20px rgba(212, 168, 67, 0.4);
+      transition: transform 0.18s, box-shadow 0.18s;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .fab:active {
+      transform: scale(0.92);
+      box-shadow: 0 2px 10px rgba(212, 168, 67, 0.3);
+    }
+
+    .fab svg {
+      width: 22px;
+      height: 22px;
+      stroke: #080809;
+      fill: none;
+      stroke-width: 2.2;
+      stroke-linecap: round;
     }
 
     /* ═══════════════════════════════════════════════
@@ -1253,6 +1620,18 @@
 
       .bottom-bar {
         display: flex;
+        flex-direction: column;
+      }
+
+      /* show the mobile budget bar */
+      .mob-budget-bar {
+        display: block;
+      }
+
+      .fab {
+        display: flex;
+        /* push FAB above the budget bar + tab bar */
+        bottom: calc(var(--bottom-h) + env(safe-area-inset-bottom, 0px) + 52px + 16px);
       }
 
       .main {
@@ -1260,7 +1639,8 @@
       }
 
       .page-wrap {
-        padding: 20px 16px 80px;
+        /* extra bottom padding to clear budget bar + tab bar */
+        padding: 20px 16px calc(var(--bottom-h) + env(safe-area-inset-bottom, 0px) + 52px + 20px);
       }
 
       .topbar {
@@ -1281,7 +1661,7 @@
       }
 
       #toasts {
-        bottom: 76px;
+        bottom: calc(var(--bottom-h) + env(safe-area-inset-bottom, 0px) + 52px + 12px);
         right: 16px;
       }
     }
@@ -1341,7 +1721,14 @@
           <span class="sb-budget-spent" id="sb-spent">₹0</span>
           <span class="sb-budget-total" id="sb-total">/ ₹5K</span>
         </div>
-        <button class="sb-edit-budget" onclick="editBudget()">Edit Limit</button>
+        <!-- edit button (shown by default) -->
+        <button class="sb-edit-budget" id="sb-edit-btn" onclick="openBudgetEdit()">✎ Edit Limit</button>
+        <!-- inline edit row (hidden until edit clicked) -->
+        <div class="sb-budget-edit-row" id="sb-edit-row">
+          <input type="number" class="sb-budget-inp" id="sb-budget-inp" placeholder="e.g. 10000" min="1" step="1" />
+          <button class="sb-budget-save" onclick="saveBudgetInline()">✓</button>
+          <button class="sb-budget-cancel" onclick="closeBudgetEdit()">✕</button>
+        </div>
       </div>
 
       <div class="sb-bottom">
@@ -1366,6 +1753,18 @@
 
         <!-- ═══ PAGE: DASHBOARD ═══ -->
         <div id="page-dashboard" class="page active">
+
+          <!-- Streak + net delta row -->
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+            <div class="streak-badge">
+              <span class="streak-flame">🔥</span>
+              <div class="streak-info">
+                <div class="streak-val" id="streak-val">0</div>
+                <div class="streak-lbl">day streak</div>
+              </div>
+            </div>
+            <div class="hero-delta neu" id="hero-delta">— net this period</div>
+          </div>
 
           <div class="g2 mb2">
             <!-- Hero -->
@@ -1551,23 +1950,82 @@
     </div><!-- /main -->
   </div><!-- /shell -->
 
+  <!-- ═══════════ MOBILE BUDGET BAR ═══════════ -->
+  <!-- Sits above the bottom tab bar on mobile. Mirrors sidebar budget widget. -->
+  <div class="mob-budget-bar" id="mob-budget-bar">
+    <div class="mob-budget-top">
+      <div class="mob-budget-left">
+        <span class="mob-budget-label">Budget</span>
+        <div class="mob-budget-nums">
+          <span class="mob-budget-spent" id="mob-spent">₹0</span>
+          <span class="mob-budget-total" id="mob-total">/ ₹5K</span>
+        </div>
+      </div>
+      <button class="mob-edit-btn" id="mob-edit-btn" onclick="openMobBudgetEdit()">✎ Edit Limit</button>
+    </div>
+    <div class="mob-budget-track">
+      <div id="mob-fill" class="mob-budget-fill" style="width:0%"></div>
+    </div>
+    <!-- inline edit row -->
+    <div class="mob-edit-row" id="mob-edit-row">
+      <input type="number" class="mob-budget-inp" id="mob-budget-inp" placeholder="e.g. 10000" min="1" step="1" />
+      <button class="mob-budget-save" onclick="saveMobBudgetInline()">✓</button>
+      <button class="mob-budget-cancel" onclick="closeMobBudgetEdit()">✕</button>
+    </div>
+  </div>
+
   <!-- ═══════════ BOTTOM TAB BAR ═══════════ -->
   <div class="bottom-bar">
     <div class="bb-inner">
-      <div class="bb-item active" data-page="dashboard" onclick="goTo('dashboard')">
-        <span class="bb-icon">◈</span>
+      <!-- sliding pill indicator -->
+      <div class="bb-indicator" id="bb-indicator" data-idx="0"></div>
+
+      <div class="bb-item active" data-page="dashboard" data-idx="0" onclick="goTo('dashboard')">
+        <span class="bb-icon">
+          <svg viewBox="0 0 24 24">
+            <rect x="3" y="3" width="7" height="7" rx="1.5" />
+            <rect x="14" y="3" width="7" height="7" rx="1.5" />
+            <rect x="3" y="14" width="7" height="7" rx="1.5" />
+            <rect x="14" y="14" width="7" height="7" rx="1.5" />
+          </svg>
+        </span>
         <span class="bb-label">Home</span>
       </div>
-      <div class="bb-item" data-page="analytics" onclick="goTo('analytics')">
-        <span class="bb-icon">◎</span>
+
+      <div class="bb-item" data-page="analytics" data-idx="1" onclick="goTo('analytics')">
+        <span class="bb-icon">
+          <svg viewBox="0 0 24 24">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+          </svg>
+        </span>
         <span class="bb-label">Analytics</span>
       </div>
-      <div class="bb-item" data-page="history" onclick="goTo('history')">
-        <span class="bb-icon">≡</span>
+
+      <div class="bb-item" data-page="history" data-idx="2" onclick="goTo('history')">
+        <span class="bb-icon">
+          <svg viewBox="0 0 24 24">
+            <line x1="8" y1="6" x2="21" y2="6" />
+            <line x1="8" y1="12" x2="21" y2="12" />
+            <line x1="8" y1="18" x2="21" y2="18" />
+            <circle cx="3" cy="6" r="1.2" fill="currentColor" stroke="none" />
+            <circle cx="3" cy="12" r="1.2" fill="currentColor" stroke="none" />
+            <circle cx="3" cy="18" r="1.2" fill="currentColor" stroke="none" />
+          </svg>
+        </span>
         <span class="bb-label">History</span>
       </div>
     </div>
   </div>
+
+  <!-- FAB quick-add (mobile) -->
+  <button class="fab" id="fab"
+    onclick="goTo('dashboard'); setTimeout(()=>document.getElementById('exp-amount').focus(),300)"
+    title="Log transaction">
+    <svg viewBox="0 0 24 24">
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  </button>
 
   <script>
     /* ═══════════════════════════════════════════════
@@ -1634,20 +2092,63 @@
       });
       document.getElementById('page-' + pg).classList.add('active');
       document.getElementById('page-title').textContent = PAGE_TITLES[pg];
+
+      // slide bottom indicator
+      const activeTab = document.querySelector(`.bb-item[data-page="${pg}"]`);
+      const indicator = document.getElementById('bb-indicator');
+      if (activeTab && indicator) indicator.dataset.idx = activeTab.dataset.idx;
+
       // trigger chart redraws for analytics
       if (pg === 'analytics') { updateDonut(); updateTrend(); updateHeatmap(); updateCatBars(); }
       if (pg === 'history') { buildFilterChips(); renderHistory(); }
     }
 
     /* ═══════════════════════════════════════════════
-       BUDGET
+       BUDGET — SIDEBAR INLINE EDIT
     ═══════════════════════════════════════════════ */
-    function editBudget() {
-      const v = prompt('Set monthly budget (₹):', budget);
-      if (v !== null && !isNaN(v) && +v > 0) {
-        budget = +v; persist(); render();
+    function openBudgetEdit() {
+      const inp = document.getElementById('sb-budget-inp');
+      inp.value = budget;
+      document.getElementById('sb-edit-btn').style.display = 'none';
+      document.getElementById('sb-edit-row').classList.add('visible');
+      inp.focus(); inp.select();
+    }
+    function closeBudgetEdit() {
+      document.getElementById('sb-edit-row').classList.remove('visible');
+      document.getElementById('sb-edit-btn').style.display = '';
+    }
+    function saveBudgetInline() {
+      const v = parseFloat(document.getElementById('sb-budget-inp').value);
+      if (!isNaN(v) && v > 0) {
+        budget = v; persist(); render();
         toast('💰', `Budget set to ${fmt(budget)}`);
       }
+      closeBudgetEdit();
+    }
+    // legacy — kept so any other calls don't break
+    function editBudget() { openBudgetEdit(); }
+
+    /* ═══════════════════════════════════════════════
+       BUDGET — MOBILE INLINE EDIT
+    ═══════════════════════════════════════════════ */
+    function openMobBudgetEdit() {
+      const inp = document.getElementById('mob-budget-inp');
+      inp.value = budget;
+      document.getElementById('mob-edit-btn').style.display = 'none';
+      document.getElementById('mob-edit-row').classList.add('visible');
+      inp.focus(); inp.select();
+    }
+    function closeMobBudgetEdit() {
+      document.getElementById('mob-edit-row').classList.remove('visible');
+      document.getElementById('mob-edit-btn').style.display = '';
+    }
+    function saveMobBudgetInline() {
+      const v = parseFloat(document.getElementById('mob-budget-inp').value);
+      if (!isNaN(v) && v > 0) {
+        budget = v; persist(); render();
+        toast('💰', `Budget set to ${fmt(budget)}`);
+      }
+      closeMobBudgetEdit();
     }
 
     /* ═══════════════════════════════════════════════
@@ -1984,6 +2485,25 @@
     }
 
     /* ═══════════════════════════════════════════════
+       STREAK CALCULATOR
+    ═══════════════════════════════════════════════ */
+    function calcStreak() {
+      // get all unique calendar days (yyyy-mm-dd strings) with at least one expense
+      const days = new Set(
+        expenses.map(e => e.date.toISOString().split('T')[0])
+      );
+      let streak = 0;
+      const d = new Date(today);
+      // if today has no log yet, start checking from yesterday
+      if (!days.has(d.toISOString().split('T')[0])) d.setDate(d.getDate() - 1);
+      while (days.has(d.toISOString().split('T')[0])) {
+        streak++;
+        d.setDate(d.getDate() - 1);
+      }
+      return streak;
+    }
+
+    /* ═══════════════════════════════════════════════
        MAIN RENDER
     ═══════════════════════════════════════════════ */
     function render() {
@@ -1993,6 +2513,24 @@
       const ts = exp.reduce((s, e) => s + e.amount, 0);
       const tv = sav.reduce((s, e) => s + e.amount, 0);
       const tall = ts + tv;
+
+      // Streak
+      const streak = calcStreak();
+      document.getElementById('streak-val').textContent = streak;
+
+      // Net delta (savings - expenses)
+      const net = tv - ts;
+      const deltaEl = document.getElementById('hero-delta');
+      if (net === 0 && f.length === 0) {
+        deltaEl.className = 'hero-delta neu';
+        deltaEl.textContent = '— net this period';
+      } else if (net >= 0) {
+        deltaEl.className = 'hero-delta pos';
+        deltaEl.textContent = `+${fmtS(net)} net saved`;
+      } else {
+        deltaEl.className = 'hero-delta neg';
+        deltaEl.textContent = `${fmtS(net)} net spent`;
+      }
 
       // Hero
       document.getElementById('hero-val').textContent = tall.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -2009,10 +2547,18 @@
 
       // Sidebar budget
       const pct = Math.min((ts / budget) * 100, 100);
+      const fillClass = 'sb-budget-fill' + (pct >= 90 ? ' danger' : pct >= 70 ? ' warn' : '');
       document.getElementById('sb-fill').style.width = pct + '%';
-      document.getElementById('sb-fill').className = 'sb-budget-fill' + (pct >= 90 ? ' danger' : pct >= 70 ? ' warn' : '');
+      document.getElementById('sb-fill').className = fillClass;
       document.getElementById('sb-spent').textContent = fmtS(ts);
       document.getElementById('sb-total').textContent = '/ ' + fmtS(budget);
+
+      // Mobile budget bar (mirrors sidebar values)
+      const mobFillClass = 'mob-budget-fill' + (pct >= 90 ? ' danger' : pct >= 70 ? ' warn' : '');
+      document.getElementById('mob-fill').style.width = pct + '%';
+      document.getElementById('mob-fill').className = mobFillClass;
+      document.getElementById('mob-spent').textContent = fmtS(ts);
+      document.getElementById('mob-total').textContent = '/ ' + fmtS(budget);
 
       // Insights
       updateInsights(f);
@@ -2035,6 +2581,18 @@
     }
 
     render();
+
+    // Budget input keyboard shortcuts — sidebar
+    document.getElementById('sb-budget-inp').addEventListener('keydown', e => {
+      if (e.key === 'Enter') saveBudgetInline();
+      if (e.key === 'Escape') closeBudgetEdit();
+    });
+
+    // Budget input keyboard shortcuts — mobile
+    document.getElementById('mob-budget-inp').addEventListener('keydown', e => {
+      if (e.key === 'Enter') saveMobBudgetInline();
+      if (e.key === 'Escape') closeMobBudgetEdit();
+    });
   </script>
 
 </body>
