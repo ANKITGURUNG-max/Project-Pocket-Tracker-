@@ -3,7 +3,9 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- FIX: user-scalable=no + maximum-scale=1 prevents iOS from auto-zooming on input focus
+       and also stops the perceived "zoom" when animations run during page switches -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>SpendSync</title>
   <link rel="icon" type="image/png" href="logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -54,7 +56,10 @@
     }
 
     html {
-      height: 100%
+      height: 100%;
+      /* FIX: Prevents any scroll-based zoom on webkit */
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
     }
 
     body {
@@ -64,6 +69,8 @@
       font-weight: 400;
       min-height: 100vh;
       overflow-x: hidden;
+      /* FIX: prevent touch callout & selection highlight causing visual glitches during nav */
+      -webkit-touch-callout: none;
     }
 
     /* noise layer */
@@ -321,7 +328,6 @@
       background: var(--gold-bg);
     }
 
-    /* inline budget editor */
     .sb-budget-edit-row {
       display: none;
       align-items: center;
@@ -341,7 +347,8 @@
       border-radius: 6px;
       color: var(--text);
       font-family: var(--font-m);
-      font-size: 12px;
+      /* FIX: 16px minimum prevents iOS auto-zoom on focus */
+      font-size: 16px;
       padding: 5px 8px;
       outline: none;
       box-shadow: 0 0 0 2px var(--gold-bg);
@@ -397,8 +404,6 @@
       font-size: 18px;
     }
 
-    .streak-info {}
-
     .streak-val {
       font-family: var(--font-m);
       font-size: 15px;
@@ -413,7 +418,6 @@
       letter-spacing: 0.3px;
     }
 
-    /* net delta pill on hero */
     .hero-delta {
       display: inline-flex;
       align-items: center;
@@ -469,6 +473,43 @@
       z-index: 50;
     }
 
+    /* Mobile logo in topbar — hidden on desktop, shown on mobile */
+    .topbar-logo {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .topbar-logo-mark {
+      width: 26px;
+      height: 26px;
+      border-radius: 7px;
+      background: linear-gradient(135deg, var(--gold) 0%, #8a5a10 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-d);
+      font-size: 13px;
+      color: #080809;
+      font-style: italic;
+      flex-shrink: 0;
+      box-shadow: 0 0 14px rgba(212, 168, 67, 0.22);
+    }
+
+    .topbar-logo-text {
+      font-family: var(--font-b);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.2px;
+      line-height: 1;
+    }
+
+    .topbar-logo-text span {
+      color: var(--gold);
+    }
+
     .topbar-title {
       font-family: var(--font-d);
       font-size: 20px;
@@ -517,18 +558,19 @@
 
     .page.active {
       display: block;
-      animation: pagein 0.22s ease both;
+      /* FIX: Removed translateY from animation — it was the root cause of the
+         perceived zoom/jump on mobile when switching pages. Pure opacity fade
+         is smooth and doesn't trigger any reflow/scale side-effects. */
+      animation: pagein 0.18s ease both;
     }
 
     @keyframes pagein {
       from {
         opacity: 0;
-        transform: translateY(10px);
       }
 
       to {
         opacity: 1;
-        transform: none;
       }
     }
 
@@ -722,7 +764,8 @@
       padding: 11px 14px;
       color: var(--text);
       font-family: var(--font-b);
-      font-size: 13px;
+      /* FIX: 16px minimum stops iOS Safari from auto-zooming when any input is tapped */
+      font-size: 16px;
       outline: none;
       transition: border-color 0.2s, box-shadow 0.2s;
       appearance: none;
@@ -1018,7 +1061,8 @@
       border-radius: var(--r2);
       padding: 10px 12px 10px 36px;
       color: var(--text);
-      font-size: 12px;
+      /* FIX: 16px prevents iOS zoom on tap */
+      font-size: 16px;
       font-family: var(--font-b);
       outline: none;
       transition: border-color 0.2s;
@@ -1053,7 +1097,6 @@
       background: var(--gold-bg);
     }
 
-    /* filter chips */
     .filter-chips {
       display: flex;
       gap: 6px;
@@ -1211,7 +1254,6 @@
       opacity: 0.4;
     }
 
-    /* summary bar above tx list */
     .tx-summary {
       display: flex;
       gap: 20px;
@@ -1221,8 +1263,6 @@
       border-radius: var(--r2);
       margin-bottom: 14px;
     }
-
-    .txs-item {}
 
     .txs-label {
       font-size: 9px;
@@ -1344,7 +1384,6 @@
       background: var(--rose);
     }
 
-    /* mobile inline edit row */
     .mob-edit-row {
       display: none;
       align-items: center;
@@ -1364,7 +1403,8 @@
       border-radius: 6px;
       color: var(--text);
       font-family: var(--font-m);
-      font-size: 13px;
+      /* FIX: 16px prevents iOS auto-zoom */
+      font-size: 16px;
       padding: 7px 10px;
       outline: none;
       box-shadow: 0 0 0 2px var(--gold-bg);
@@ -1416,7 +1456,6 @@
       background: var(--surface);
       border-top: 1px solid var(--border2);
       z-index: 100;
-      /* safe-area for notched phones */
       padding-bottom: env(safe-area-inset-bottom, 0px);
     }
 
@@ -1427,7 +1466,6 @@
       position: relative;
     }
 
-    /* sliding pill indicator */
     .bb-indicator {
       position: absolute;
       top: 10px;
@@ -1612,7 +1650,7 @@
     }
 
     /* ═══════════════════════════════════════════════
-       RESPONSIVE
+       RESPONSIVE — PORTRAIT MOBILE (≤768px)
     ═══════════════════════════════════════════════ */
     @media (max-width: 768px) {
       .sidebar {
@@ -1624,14 +1662,12 @@
         flex-direction: column;
       }
 
-      /* show the mobile budget bar */
       .mob-budget-bar {
         display: block;
       }
 
       .fab {
         display: flex;
-        /* push FAB above the budget bar + tab bar */
         bottom: calc(var(--bottom-h) + env(safe-area-inset-bottom, 0px) + 52px + 16px);
       }
 
@@ -1640,12 +1676,21 @@
       }
 
       .page-wrap {
-        /* extra bottom padding to clear budget bar + tab bar */
         padding: 20px 16px calc(var(--bottom-h) + env(safe-area-inset-bottom, 0px) + 52px + 20px);
       }
 
       .topbar {
         padding: 0 16px;
+      }
+
+      /* Show logo in topbar on mobile */
+      .topbar-logo {
+        display: flex;
+      }
+
+      /* Hide plain title on mobile — logo takes its place */
+      .topbar-title {
+        display: none;
       }
 
       .g2,
@@ -1661,8 +1706,86 @@
         grid-template-columns: 1fr 1fr;
       }
 
+      /* Analytics: full-width donut needs more height to fit donut + bottom legend */
+      .chart-box-lg {
+        height: 320px;
+      }
+
+      /* Give category bars card a max-height with scroll so it doesn't blow out the page */
+      #cat-list {
+        max-height: none;
+      }
+
+      /* Trend chart slightly taller on mobile too */
+      .chart-box {
+        height: 180px;
+      }
+
       #toasts {
         bottom: calc(var(--bottom-h) + env(safe-area-inset-bottom, 0px) + 52px + 12px);
+        right: 16px;
+      }
+    }
+
+    /* ═══════════════════════════════════════════════
+       RESPONSIVE — LANDSCAPE MOBILE
+       Targets phones in landscape: short viewport, not too wide
+    ═══════════════════════════════════════════════ */
+    @media (max-height: 500px) and (max-width: 900px) and (orientation: landscape) {
+      .sidebar {
+        display: none;
+      }
+
+      .bottom-bar {
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* In landscape, budget bar takes too much vertical space — hide it,
+         budget is still editable via sidebar which reappears if viewport is wide enough */
+      .mob-budget-bar {
+        display: none;
+      }
+
+      .fab {
+        display: flex;
+        /* No budget bar in landscape so FAB sits just above tab bar */
+        bottom: calc(var(--bottom-h) + env(safe-area-inset-bottom, 0px) + 16px);
+      }
+
+      .main {
+        margin-left: 0;
+      }
+
+      .page-wrap {
+        padding: 12px 16px calc(var(--bottom-h) + env(safe-area-inset-bottom, 0px) + 16px);
+      }
+
+      .topbar {
+        padding: 0 16px;
+        height: 48px;
+      }
+
+      /* Show logo in topbar in landscape too */
+      .topbar-logo {
+        display: flex;
+      }
+
+      .topbar-title {
+        display: none;
+      }
+
+      .g2,
+      .g3 {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .insight-grid {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+
+      #toasts {
+        bottom: calc(var(--bottom-h) + env(safe-area-inset-bottom, 0px) + 12px);
         right: 16px;
       }
     }
@@ -1711,7 +1834,6 @@
         </div>
       </nav>
 
-      <!-- mini budget -->
       <div class="sb-budget">
         <div class="sb-budget-label">Monthly Budget</div>
         <div class="sb-budget-track">
@@ -1721,9 +1843,7 @@
           <span class="sb-budget-spent" id="sb-spent">₹0</span>
           <span class="sb-budget-total" id="sb-total">/ ₹5K</span>
         </div>
-        <!-- edit button (shown by default) -->
         <button class="sb-edit-budget" id="sb-edit-btn" onclick="openBudgetEdit()">✎ Edit Limit</button>
-        <!-- inline edit row (hidden until edit clicked) -->
         <div class="sb-budget-edit-row" id="sb-edit-row">
           <input type="number" class="sb-budget-inp" id="sb-budget-inp" placeholder="e.g. 10000" min="1" step="1" />
           <button class="sb-budget-save" onclick="saveBudgetInline()">✓</button>
@@ -1742,6 +1862,12 @@
 
       <!-- Top Bar -->
       <div class="topbar">
+        <!-- Logo shown on mobile (hidden on desktop via CSS) -->
+        <div class="topbar-logo">
+          <div class="topbar-logo-mark">S</div>
+          <div class="topbar-logo-text">Spend<span>Sync</span></div>
+        </div>
+        <!-- Title shown on desktop (hidden on mobile via CSS) -->
         <div class="topbar-title" id="page-title">Dashboard</div>
         <div class="topbar-period">
           <span class="period-label-top">Period</span>
@@ -1754,7 +1880,6 @@
         <!-- ═══ PAGE: DASHBOARD ═══ -->
         <div id="page-dashboard" class="page active">
 
-          <!-- Streak + net delta row -->
           <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
             <div class="streak-badge">
               <span class="streak-flame">🔥</span>
@@ -1767,7 +1892,6 @@
           </div>
 
           <div class="g2 mb2">
-            <!-- Hero -->
             <div class="hero-card card span2">
               <div class="hero-eyebrow">Total Spent</div>
               <div class="hero-amount"><span class="sym">₹</span><span id="hero-val">0.00</span></div>
@@ -1793,7 +1917,6 @@
             </div>
           </div>
 
-          <!-- Insights -->
           <div class="mb2">
             <div class="sh">
               <div class="sh-title">Smart Insights</div>
@@ -1832,7 +1955,6 @@
             </div>
           </div>
 
-          <!-- Log form -->
           <div class="g2">
             <div class="card">
               <div class="form-title">Log Transaction</div>
@@ -1862,7 +1984,6 @@
               </form>
             </div>
 
-            <!-- Recent (last 5) -->
             <div class="card">
               <div class="sh">
                 <div class="sh-title">Recent</div>
@@ -1879,12 +2000,10 @@
         <div id="page-analytics" class="page">
 
           <div class="g2 mb">
-            <!-- Donut -->
             <div class="card">
               <div class="card-label">Category Breakdown</div>
               <div class="chart-box-lg"><canvas id="donut-chart"></canvas></div>
             </div>
-            <!-- Category bars -->
             <div class="card">
               <div class="card-label">Spend by Category</div>
               <div class="cat-list" id="cat-list"></div>
@@ -1892,12 +2011,10 @@
           </div>
 
           <div class="g2 mb">
-            <!-- Trend -->
             <div class="card">
               <div class="card-label">6-Month Trend</div>
               <div class="chart-box"><canvas id="trend-chart"></canvas></div>
             </div>
-            <!-- Heatmap -->
             <div class="card">
               <div class="card-label">Daily Heatmap — <span id="hmap-month-label" style="color:var(--text2)"></span>
               </div>
@@ -1920,10 +2037,8 @@
             <button class="ctrl-btn" onclick="exportToCSV()">↓ CSV</button>
           </div>
 
-          <!-- category filter chips -->
           <div class="filter-chips" id="filter-chips"></div>
 
-          <!-- summary bar -->
           <div class="tx-summary">
             <div class="txs-item">
               <div class="txs-label">Total Spent</div>
@@ -1951,7 +2066,6 @@
   </div><!-- /shell -->
 
   <!-- ═══════════ MOBILE BUDGET BAR ═══════════ -->
-  <!-- Sits above the bottom tab bar on mobile. Mirrors sidebar budget widget. -->
   <div class="mob-budget-bar" id="mob-budget-bar">
     <div class="mob-budget-top">
       <div class="mob-budget-left">
@@ -1966,7 +2080,6 @@
     <div class="mob-budget-track">
       <div id="mob-fill" class="mob-budget-fill" style="width:0%"></div>
     </div>
-    <!-- inline edit row -->
     <div class="mob-edit-row" id="mob-edit-row">
       <input type="number" class="mob-budget-inp" id="mob-budget-inp" placeholder="e.g. 10000" min="1" step="1" />
       <button class="mob-budget-save" onclick="saveMobBudgetInline()">✓</button>
@@ -1977,7 +2090,6 @@
   <!-- ═══════════ BOTTOM TAB BAR ═══════════ -->
   <div class="bottom-bar">
     <div class="bb-inner">
-      <!-- sliding pill indicator -->
       <div class="bb-indicator" id="bb-indicator" data-idx="0"></div>
 
       <div class="bb-item active" data-page="dashboard" data-idx="0" onclick="goTo('dashboard')">
@@ -2093,12 +2205,10 @@
       document.getElementById('page-' + pg).classList.add('active');
       document.getElementById('page-title').textContent = PAGE_TITLES[pg];
 
-      // slide bottom indicator
       const activeTab = document.querySelector(`.bb-item[data-page="${pg}"]`);
       const indicator = document.getElementById('bb-indicator');
       if (activeTab && indicator) indicator.dataset.idx = activeTab.dataset.idx;
 
-      // trigger chart redraws for analytics
       if (pg === 'analytics') { updateDonut(); updateTrend(); updateHeatmap(); updateCatBars(); }
       if (pg === 'history') { buildFilterChips(); renderHistory(); }
     }
@@ -2119,14 +2229,10 @@
     }
     function saveBudgetInline() {
       const v = parseFloat(document.getElementById('sb-budget-inp').value);
-      if (!isNaN(v) && v > 0) {
-        budget = v; persist(); render();
-        toast('💰', `Budget set to ${fmt(budget)}`);
-      }
+      if (!isNaN(v) && v > 0) { budget = v; persist(); render(); toast('💰', `Budget set to ${fmt(budget)}`); }
       closeBudgetEdit();
     }
-    // legacy — kept so any other calls don't break
-    function editBudget() { openBudgetEdit(); }
+    function editBudget() { openBudgetEdit(); } // legacy
 
     /* ═══════════════════════════════════════════════
        BUDGET — MOBILE INLINE EDIT
@@ -2144,10 +2250,7 @@
     }
     function saveMobBudgetInline() {
       const v = parseFloat(document.getElementById('mob-budget-inp').value);
-      if (!isNaN(v) && v > 0) {
-        budget = v; persist(); render();
-        toast('💰', `Budget set to ${fmt(budget)}`);
-      }
+      if (!isNaN(v) && v > 0) { budget = v; persist(); render(); toast('💰', `Budget set to ${fmt(budget)}`); }
       closeMobBudgetEdit();
     }
 
@@ -2255,6 +2358,10 @@
       const data = labels.map(k => totals[k]);
       const colors = labels.map(k => CAT[k]);
 
+      // On mobile (portrait), put legend below the chart so the donut has full width
+      const isMobile = window.innerWidth <= 768;
+      const legendPos = isMobile ? 'bottom' : 'right';
+
       const ctx = document.getElementById('donut-chart').getContext('2d');
       if (donutInst) donutInst.destroy();
       donutInst = new Chart(ctx, {
@@ -2263,7 +2370,15 @@
         options: {
           responsive: true, maintainAspectRatio: false,
           plugins: {
-            legend: { position: 'right', labels: { color: '#8c8799', font: { family: 'Syne', size: 11 }, boxWidth: 9, padding: 12 } },
+            legend: {
+              position: legendPos,
+              labels: {
+                color: '#8c8799',
+                font: { family: 'Syne', size: 11 },
+                boxWidth: 9,
+                padding: isMobile ? 8 : 12
+              }
+            },
             tooltip: { callbacks: { label: c => '  ' + fmt(c.raw) } }
           },
           cutout: '70%'
@@ -2323,8 +2438,8 @@
       });
       const maxD = Math.max(1, ...Object.values(daily));
 
-      const lbl = document.getElementById('hmap-month-label');
-      lbl.textContent = new Date(y, m - 1, 1).toLocaleString('en-IN', { month: 'long', year: 'numeric' });
+      document.getElementById('hmap-month-label').textContent =
+        new Date(y, m - 1, 1).toLocaleString('en-IN', { month: 'long', year: 'numeric' });
 
       const wrap = document.getElementById('heatmap');
       wrap.innerHTML = '';
@@ -2337,10 +2452,7 @@
         cell.className = 'hm-cell';
         const amt = daily[d] || 0;
         const frac = amt / maxD;
-        if (amt > 0) {
-          const a = 0.12 + frac * 0.78;
-          cell.style.background = `rgba(212,168,67,${a})`;
-        }
+        if (amt > 0) { const a = 0.12 + frac * 0.78; cell.style.background = `rgba(212,168,67,${a})`; }
         const isToday = d === today.getDate() && y === today.getFullYear() && (m - 1) === today.getMonth();
         if (isToday) cell.classList.add('today');
         const tip = document.createElement('div');
@@ -2368,11 +2480,11 @@
         const pct = Math.round((totals[cat] / maxC) * 100);
         const row = document.createElement('div');
         row.innerHTML = `
-      <div class="cat-row-hd">
-        <div class="cat-name"><span class="cat-dot" style="background:${CAT[cat]}"></span>${cat}</div>
-        <div class="cat-amt">${fmtS(totals[cat])}</div>
-      </div>
-      <div class="cat-track"><div class="cat-fill" style="width:${pct}%;background:${CAT[cat]}"></div></div>`;
+          <div class="cat-row-hd">
+            <div class="cat-name"><span class="cat-dot" style="background:${CAT[cat]}"></span>${cat}</div>
+            <div class="cat-amt">${fmtS(totals[cat])}</div>
+          </div>
+          <div class="cat-track"><div class="cat-fill" style="width:${pct}%;background:${CAT[cat]}"></div></div>`;
         wrap.appendChild(row);
       });
     }
@@ -2388,8 +2500,7 @@
 
       const catT = {};
       exp.forEach(e => { catT[e.category] = (catT[e.category] || 0) + e.amount; });
-      const topCat = Object.keys(catT).sort((a, b) => catT[b] - catT[a])[0] || '—';
-      document.getElementById('i-topcat').textContent = topCat;
+      document.getElementById('i-topcat').textContent = Object.keys(catT).sort((a, b) => catT[b] - catT[a])[0] || '—';
 
       const lrg = exp.length ? Math.max(...exp.map(e => e.amount)) : 0;
       document.getElementById('i-largest').textContent = fmtS(lrg);
@@ -2398,10 +2509,7 @@
       document.getElementById('i-saverate').textContent = tot > 0 ? Math.round((tv / tot) * 100) + '%' : '0%';
 
       const dayMap = {};
-      exp.forEach(e => {
-        const k = e.date.toLocaleDateString('en-IN', { weekday: 'short' });
-        dayMap[k] = (dayMap[k] || 0) + 1;
-      });
+      exp.forEach(e => { const k = e.date.toLocaleDateString('en-IN', { weekday: 'short' }); dayMap[k] = (dayMap[k] || 0) + 1; });
       document.getElementById('i-busiestday').textContent = Object.keys(dayMap).sort((a, b) => dayMap[b] - dayMap[a])[0] || '—';
       document.getElementById('i-recurring').textContent = f.filter(e => e.recurring).length;
 
@@ -2425,17 +2533,17 @@
       const el = document.createElement('div');
       el.className = 'tx-item';
       el.innerHTML = `
-    <div class="tx-dot" style="background:${color}"></div>
-    <div class="tx-mid">
-      <div class="tx-cat">${exp.category}</div>
-      <div class="tx-note">${exp.note}</div>
-      ${exp.recurring ? '<div class="tx-tag">↻ recurring</div>' : ''}
-    </div>
-    <div class="tx-right">
-      <div class="tx-amt ${isSav ? 'sav' : 'exp'}">${isSav ? '+' : '−'}${fmt(exp.amount)}</div>
-      <div class="tx-date">${exp.date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
-    </div>
-    <button class="tx-del" onclick="del(${exp.id})">Remove</button>`;
+        <div class="tx-dot" style="background:${color}"></div>
+        <div class="tx-mid">
+          <div class="tx-cat">${exp.category}</div>
+          <div class="tx-note">${exp.note}</div>
+          ${exp.recurring ? '<div class="tx-tag">↻ recurring</div>' : ''}
+        </div>
+        <div class="tx-right">
+          <div class="tx-amt ${isSav ? 'sav' : 'exp'}">${isSav ? '+' : '−'}${fmt(exp.amount)}</div>
+          <div class="tx-date">${exp.date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+        </div>
+        <button class="tx-del" onclick="del(${exp.id})">Remove</button>`;
       return el;
     }
 
@@ -2477,10 +2585,7 @@
 
       const list = document.getElementById('hist-list');
       list.innerHTML = '';
-      if (!f.length) {
-        list.innerHTML = '<div class="empty"><div class="empty-icon">📭</div>No transactions match</div>';
-        return;
-      }
+      if (!f.length) { list.innerHTML = '<div class="empty"><div class="empty-icon">📭</div>No transactions match</div>'; return; }
       f.forEach(e => list.appendChild(makeTxItem(e)));
     }
 
@@ -2488,18 +2593,11 @@
        STREAK CALCULATOR
     ═══════════════════════════════════════════════ */
     function calcStreak() {
-      // get all unique calendar days (yyyy-mm-dd strings) with at least one expense
-      const days = new Set(
-        expenses.map(e => e.date.toISOString().split('T')[0])
-      );
+      const days = new Set(expenses.map(e => e.date.toISOString().split('T')[0]));
       let streak = 0;
       const d = new Date(today);
-      // if today has no log yet, start checking from yesterday
       if (!days.has(d.toISOString().split('T')[0])) d.setDate(d.getDate() - 1);
-      while (days.has(d.toISOString().split('T')[0])) {
-        streak++;
-        d.setDate(d.getDate() - 1);
-      }
+      while (days.has(d.toISOString().split('T')[0])) { streak++; d.setDate(d.getDate() - 1); }
       return streak;
     }
 
@@ -2514,11 +2612,8 @@
       const tv = sav.reduce((s, e) => s + e.amount, 0);
       const tall = ts + tv;
 
-      // Streak
-      const streak = calcStreak();
-      document.getElementById('streak-val').textContent = streak;
+      document.getElementById('streak-val').textContent = calcStreak();
 
-      // Net delta (savings - expenses)
       const net = tv - ts;
       const deltaEl = document.getElementById('hero-delta');
       if (net === 0 && f.length === 0) {
@@ -2532,9 +2627,9 @@
         deltaEl.textContent = `${fmtS(net)} net spent`;
       }
 
-      // Hero
       document.getElementById('hero-val').textContent = tall.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      document.getElementById('hero-sub').textContent = f.length === 0 ? 'No transactions this period'
+      document.getElementById('hero-sub').textContent = f.length === 0
+        ? 'No transactions this period'
         : `${f.length} transaction${f.length !== 1 ? 's' : ''} recorded`;
       const ud = new Set(exp.map(e => e.date.getDate())).size;
       document.getElementById('h-daily').textContent = ud > 0 ? fmtS(ts / ud) : '₹0';
@@ -2545,36 +2640,32 @@
       hLeft.textContent = fmtS(Math.abs(rem));
       hLeft.className = 'hs-val' + (rem < 0 ? ' neg' : '');
 
-      // Sidebar budget
       const pct = Math.min((ts / budget) * 100, 100);
-      const fillClass = 'sb-budget-fill' + (pct >= 90 ? ' danger' : pct >= 70 ? ' warn' : '');
+      const fillClass = pct >= 90 ? ' danger' : pct >= 70 ? ' warn' : '';
+
+      // Sidebar budget
       document.getElementById('sb-fill').style.width = pct + '%';
-      document.getElementById('sb-fill').className = fillClass;
+      document.getElementById('sb-fill').className = 'sb-budget-fill' + fillClass;
       document.getElementById('sb-spent').textContent = fmtS(ts);
       document.getElementById('sb-total').textContent = '/ ' + fmtS(budget);
 
-      // Mobile budget bar (mirrors sidebar values)
-      const mobFillClass = 'mob-budget-fill' + (pct >= 90 ? ' danger' : pct >= 70 ? ' warn' : '');
+      // Mobile budget bar
       document.getElementById('mob-fill').style.width = pct + '%';
-      document.getElementById('mob-fill').className = mobFillClass;
+      document.getElementById('mob-fill').className = 'mob-budget-fill' + fillClass;
       document.getElementById('mob-spent').textContent = fmtS(ts);
       document.getElementById('mob-total').textContent = '/ ' + fmtS(budget);
 
-      // Insights
       updateInsights(f);
 
-      // Recent list (last 5 expenses)
       const recent = document.getElementById('recent-list');
       recent.innerHTML = '';
       const r5 = [...f].sort((a, b) => b.date - a.date).slice(0, 5);
       if (!r5.length) { recent.innerHTML = '<div class="empty"><div class="empty-icon">📭</div>Nothing yet</div>'; }
       else r5.forEach(e => recent.appendChild(makeTxItem(e)));
 
-      // If analytics is visible, refresh charts
       if (document.getElementById('page-analytics').classList.contains('active')) {
         updateDonut(); updateTrend(); updateHeatmap(); updateCatBars();
       }
-      // If history is visible, refresh
       if (document.getElementById('page-history').classList.contains('active')) {
         buildFilterChips(); renderHistory();
       }
@@ -2582,16 +2673,21 @@
 
     render();
 
-    // Budget input keyboard shortcuts — sidebar
+    // Keyboard shortcuts
     document.getElementById('sb-budget-inp').addEventListener('keydown', e => {
       if (e.key === 'Enter') saveBudgetInline();
       if (e.key === 'Escape') closeBudgetEdit();
     });
-
-    // Budget input keyboard shortcuts — mobile
     document.getElementById('mob-budget-inp').addEventListener('keydown', e => {
       if (e.key === 'Enter') saveMobBudgetInline();
       if (e.key === 'Escape') closeMobBudgetEdit();
+    });
+
+    // Re-render donut on orientation change so legend flips side↔bottom correctly
+    window.addEventListener('resize', () => {
+      if (document.getElementById('page-analytics').classList.contains('active')) {
+        updateDonut();
+      }
     });
   </script>
 
