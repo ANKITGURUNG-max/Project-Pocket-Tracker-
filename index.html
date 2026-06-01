@@ -558,9 +558,6 @@
 
     .page.active {
       display: block;
-      /* FIX: Removed translateY from animation — it was the root cause of the
-         perceived zoom/jump on mobile when switching pages. Pure opacity fade
-         is smooth and doesn't trigger any reflow/scale side-effects. */
       animation: pagein 0.18s ease both;
     }
 
@@ -1241,6 +1238,12 @@
       background: rgba(240, 85, 110, 0.08);
     }
 
+    /* ══════ DELETE CONFIRMATION STATE ══════ */
+    .tx-del.confirming {
+      color: #fff !important;
+      background: var(--rose) !important;
+    }
+
     .empty {
       text-align: center;
       padding: 52px 20px;
@@ -1576,7 +1579,7 @@
     }
 
     /* ═══════════════════════════════════════════════
-       TOAST
+       TOAST & UNDO BUTTON
     ═══════════════════════════════════════════════ */
     #toasts {
       position: fixed;
@@ -1601,11 +1604,36 @@
       align-items: center;
       gap: 10px;
       animation: tin 0.3s cubic-bezier(.23, 1, .32, 1) both;
-      max-width: 300px;
+      max-width: 340px;
+      pointer-events: auto;
+      /* Required so we can click the undo button inside */
     }
 
     .toast.out {
       animation: tout 0.25s ease both;
+    }
+
+    .undo-btn {
+      background: rgba(212, 168, 67, 0.15);
+      border: 1px solid var(--gold-dim);
+      color: var(--gold2);
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-family: var(--font-b);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-left: 10px;
+    }
+
+    .undo-btn:hover {
+      background: var(--gold);
+      color: #080809;
+    }
+
+    .undo-btn:active {
+      transform: scale(0.95);
     }
 
     @keyframes tin {
@@ -1724,6 +1752,19 @@
       #toasts {
         bottom: calc(var(--bottom-h) + env(safe-area-inset-bottom, 0px) + 52px + 12px);
         right: 16px;
+        left: 16px;
+        align-items: center;
+        /* center on mobile */
+      }
+
+      .toast {
+        max-width: 100%;
+        width: 100%;
+      }
+
+      .tx-del {
+        color: var(--rose);
+        background: rgba(240, 85, 110, 0.05);
       }
     }
 
@@ -1804,6 +1845,7 @@
         border: none;
         padding: 0;
         margin: 0;
+        flex: 1 1 40%;
       }
     }
   </style>
@@ -2279,12 +2321,67 @@
     }
 
     /* ═══════════════════════════════════════════════
-       DELETE
+       DELETE & UNDO SYSTEM
     ═══════════════════════════════════════════════ */
+    // 1. Double-click to confirm removal preventing accidental deletes
+    function handleDeleteClick(btn, id) {
+      if (btn.classList.contains('confirming')) {
+        clearTimeout(btn.dataset.tid);
+        del(id);
+      } else {
+        const originalText = btn.textContent;
+        btn.classList.add('confirming');
+        btn.textContent = 'Sure?';
+        const tid = setTimeout(() => {
+          btn.classList.remove('confirming');
+          btn.textContent = originalText;
+        }, 3000);
+        btn.dataset.tid = tid;
+      }
+    }
+
+    // 2. Perform delete and spawn custom Undo toast
     function del(id) {
-      expenses = expenses.filter(e => e.id !== id);
-      persist(); render();
-      toast('🗑️', 'Removed');
+      const index = expenses.findIndex(e => e.id === id);
+      if (index === -1) return;
+
+      // Keep record of it and remove it temporarily
+      const tx = expenses[index];
+      expenses.splice(index, 1);
+      persist();
+      render();
+
+      // Spawn custom toast with Undo button
+      const wrap = document.getElementById('toasts');
+      const el = document.createElement('div');
+      el.className = 'toast';
+      el.innerHTML = `
+        <span style="font-size:15px">🗑️</span>
+        <span style="flex:1">Removed ${fmt(tx.amount)}</span>
+        <button class="undo-btn">UNDO</button>
+      `;
+      wrap.appendChild(el);
+
+      let isUndone = false;
+      const removeToast = () => {
+        el.classList.add('out');
+        setTimeout(() => el.remove(), 280);
+      };
+
+      // 5-second timer to undo
+      const tId = setTimeout(() => {
+        if (!isUndone) removeToast();
+      }, 5000);
+
+      // Restore transaction if undone
+      el.querySelector('.undo-btn').onclick = () => {
+        isUndone = true;
+        // Insert it right back into its original index
+        expenses.splice(index, 0, tx);
+        persist();
+        render();
+        removeToast();
+      };
     }
 
     /* ═══════════════════════════════════════════════
@@ -2543,7 +2640,7 @@
           <div class="tx-amt ${isSav ? 'sav' : 'exp'}">${isSav ? '+' : '−'}${fmt(exp.amount)}</div>
           <div class="tx-date">${exp.date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
         </div>
-        <button class="tx-del" onclick="del(${exp.id})">Remove</button>`;
+        <button class="tx-del" onclick="handleDeleteClick(this, ${exp.id})">Remove</button>`;
       return el;
     }
 
