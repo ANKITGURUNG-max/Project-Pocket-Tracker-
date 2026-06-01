@@ -453,10 +453,12 @@
     ═══════════════════════════════════════════════ */
     .main {
       margin-left: var(--sidebar-w);
+      width: calc(100% - var(--sidebar-w));
       flex: 1;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      min-width: 0;
     }
 
     /* top bar */
@@ -607,6 +609,7 @@
       border-radius: var(--r);
       padding: 22px 24px;
       transition: border-color 0.2s;
+      min-width: 0;
     }
 
     .card:hover {
@@ -903,16 +906,22 @@
     .chart-box {
       position: relative;
       height: 200px;
+      width: 100%;
+      min-width: 0;
     }
 
     .chart-box-sm {
       position: relative;
       height: 120px;
+      width: 100%;
+      min-width: 0;
     }
 
     .chart-box-lg {
       position: relative;
       height: 260px;
+      width: 100%;
+      min-width: 0;
     }
 
     /* ═══════════════════════════════════════════════
@@ -1701,6 +1710,7 @@
 
       .main {
         margin-left: 0;
+        width: 100%;
       }
 
       .page-wrap {
@@ -1796,6 +1806,7 @@
 
       .main {
         margin-left: 0;
+        width: 100%;
       }
 
       .page-wrap {
@@ -2455,8 +2466,8 @@
       const data = labels.map(k => totals[k]);
       const colors = labels.map(k => CAT[k]);
 
-      // On mobile (portrait), put legend below the chart so the donut has full width
-      const isMobile = window.innerWidth <= 768;
+      // On mobile & smaller desktop (portrait), put legend below the chart so the donut has full width
+      const isMobile = window.innerWidth <= 992;
       const legendPos = isMobile ? 'bottom' : 'right';
 
       const ctx = document.getElementById('donut-chart').getContext('2d');
