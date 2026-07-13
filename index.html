@@ -1588,6 +1588,308 @@
     }
 
     /* ═══════════════════════════════════════════════
+       FAB — EXPANDABLE ACTION MENU
+    ═══════════════════════════════════════════════ */
+    .fab svg {
+      transition: transform 0.2s;
+    }
+
+    .fab.open svg {
+      transform: rotate(45deg);
+    }
+
+    .fab-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 96;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .fab-backdrop.open {
+      display: block;
+      opacity: 1;
+    }
+
+    .fab-menu {
+      display: none;
+      position: fixed;
+      right: 16px;
+      bottom: calc(var(--bottom-h) + env(safe-area-inset-bottom, 0px) + 16px + 60px);
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 12px;
+      z-index: 99;
+    }
+
+    .fab-menu.open {
+      display: flex;
+    }
+
+    .fab-mini {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border3);
+      border-radius: 99px;
+      padding: 8px 8px 8px 16px;
+      cursor: pointer;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+      animation: fabminiin 0.22s cubic-bezier(.23, 1, .32, 1) both;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .fab-mini:nth-child(2) {
+      animation-delay: 0.04s;
+    }
+
+    @keyframes fabminiin {
+      from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.9);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    .fab-mini-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--gold-bg);
+      border: 1px solid var(--gold-dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: var(--gold2);
+      flex-shrink: 0;
+    }
+
+    .fab-mini-icon svg {
+      width: 15px;
+      height: 15px;
+      stroke: var(--gold2);
+      fill: none;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+    }
+
+    .fab-mini-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text2);
+      white-space: nowrap;
+    }
+
+    /* ═══════════════════════════════════════════════
+       CALCULATOR MODAL
+    ═══════════════════════════════════════════════ */
+    .calc-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 199;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .calc-backdrop.open {
+      display: block;
+      opacity: 1;
+    }
+
+    .calc-modal {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      margin: 0 auto;
+      max-width: 340px;
+      background: var(--surface);
+      border: 1px solid var(--border3);
+      border-radius: var(--r) var(--r) 0 0;
+      padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+      z-index: 200;
+      box-shadow: 0 -10px 50px rgba(0, 0, 0, 0.6);
+      animation: calcin 0.24s cubic-bezier(.23, 1, .32, 1) both;
+    }
+
+    .calc-modal.open {
+      display: block;
+    }
+
+    @keyframes calcin {
+      from {
+        opacity: 0;
+        transform: translateY(24px);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    .calc-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .calc-title {
+      font-family: var(--font-d);
+      font-size: 18px;
+      font-style: italic;
+      color: var(--text);
+    }
+
+    .calc-close {
+      background: none;
+      border: 1px solid var(--border2);
+      color: var(--muted2);
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.18s;
+    }
+
+    .calc-close:hover {
+      color: var(--rose);
+      border-color: rgba(240, 85, 110, 0.3);
+    }
+
+    .calc-screen {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--r2);
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      text-align: right;
+    }
+
+    .calc-expr {
+      font-family: var(--font-m);
+      font-size: 12px;
+      color: var(--muted);
+      min-height: 16px;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .calc-display {
+      font-family: var(--font-m);
+      font-size: 30px;
+      color: var(--text);
+      font-weight: 500;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+
+    .calc-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .calc-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: var(--r2);
+      color: var(--text);
+      font-family: var(--font-b);
+      font-size: 16px;
+      font-weight: 600;
+      padding: 14px 0;
+      cursor: pointer;
+      transition: all 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .calc-btn:hover {
+      border-color: var(--border3);
+    }
+
+    .calc-btn:active {
+      transform: scale(0.94);
+      background: var(--surface3);
+    }
+
+    .calc-btn.op {
+      color: var(--gold2);
+      border-color: var(--gold-dim);
+      background: var(--gold-bg);
+    }
+
+    .calc-btn.eq {
+      background: var(--gold);
+      color: #080809;
+      border-color: var(--gold);
+    }
+
+    .calc-btn.clear {
+      color: var(--rose);
+      border-color: rgba(240, 85, 110, 0.3);
+    }
+
+    .calc-use-btn {
+      width: 100%;
+      background: var(--gold);
+      color: #080809;
+      font-family: var(--font-b);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 13px;
+      border: none;
+      border-radius: var(--r2);
+      cursor: pointer;
+      letter-spacing: 0.3px;
+      transition: 0.2s;
+      box-shadow: 0 4px 24px rgba(212, 168, 67, 0.22);
+    }
+
+    .calc-use-btn:hover {
+      background: var(--gold2);
+      box-shadow: 0 4px 30px rgba(212, 168, 67, 0.35);
+    }
+
+    @media (min-width: 769px) {
+      .calc-modal {
+        bottom: auto;
+        top: 50%;
+        left: 50%;
+        right: auto;
+        transform: translate(-50%, -50%);
+        border-radius: var(--r);
+        animation: calcinDesktop 0.2s cubic-bezier(.23, 1, .32, 1) both;
+      }
+
+      @keyframes calcinDesktop {
+        from {
+          opacity: 0;
+          transform: translate(-50%, -46%) scale(0.96);
+        }
+
+        to {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1);
+        }
+      }
+    }
+
+    /* ═══════════════════════════════════════════════
        TOAST & UNDO BUTTON
     ═══════════════════════════════════════════════ */
     #toasts {
@@ -1708,6 +2010,10 @@
         bottom: calc(var(--bottom-h) + env(safe-area-inset-bottom, 0px) + 52px + 16px);
       }
 
+      .fab-menu {
+        bottom: calc(var(--bottom-h) + env(safe-area-inset-bottom, 0px) + 52px + 16px + 60px);
+      }
+
       .main {
         margin-left: 0;
         width: 100%;
@@ -1802,6 +2108,10 @@
         display: flex;
         /* No budget bar in landscape so FAB sits just above tab bar */
         bottom: calc(var(--bottom-h) + env(safe-area-inset-bottom, 0px) + 16px);
+      }
+
+      .fab-menu {
+        bottom: calc(var(--bottom-h) + env(safe-area-inset-bottom, 0px) + 16px + 60px);
       }
 
       .main {
@@ -1905,6 +2215,7 @@
       </div>
 
       <div class="sb-bottom">
+        <button class="sb-action" onclick="openCalculator()">🧮 &nbsp;Calculator</button>
         <button class="sb-action" onclick="exportToCSV()">↓ &nbsp;Export CSV</button>
         <button class="sb-action danger" onclick="clearAll()">✕ &nbsp;Clear Data</button>
       </div>
@@ -2075,6 +2386,12 @@
             </div>
           </div>
 
+          <div class="card mb">
+            <div class="card-label">Monthly Day-by-Day — <span id="daily-month-label" style="color:var(--text2)"></span>
+            </div>
+            <div class="chart-box-lg"><canvas id="daily-chart"></canvas></div>
+          </div>
+
         </div><!-- /analytics -->
 
         <!-- ═══ PAGE: HISTORY ═══ -->
@@ -2182,15 +2499,72 @@
     </div>
   </div>
 
-  <!-- FAB quick-add (mobile) -->
-  <button class="fab" id="fab"
-    onclick="goTo('dashboard'); setTimeout(()=>document.getElementById('exp-amount').focus(),300)"
-    title="Log transaction">
+  <!-- FAB backdrop — closes the expanded menu on outside tap -->
+  <div class="fab-backdrop" id="fab-backdrop" onclick="closeFab()"></div>
+
+  <!-- FAB expandable action menu (mobile) -->
+  <div class="fab-menu" id="fab-menu">
+    <button class="fab-mini" onclick="fabAddTransaction()">
+      <span class="fab-mini-label">Add Transaction</span>
+      <span class="fab-mini-icon">
+        <svg viewBox="0 0 24 24">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+      </span>
+    </button>
+    <button class="fab-mini" onclick="closeFab(); openCalculator()">
+      <span class="fab-mini-label">Calculator</span>
+      <span class="fab-mini-icon">🧮</span>
+    </button>
+  </div>
+
+  <!-- FAB toggle (mobile) -->
+  <button class="fab" id="fab" onclick="toggleFab()" title="Quick actions">
     <svg viewBox="0 0 24 24">
       <line x1="12" y1="5" x2="12" y2="19" />
       <line x1="5" y1="12" x2="19" y2="12" />
     </svg>
   </button>
+
+  <!-- ═══════════ CALCULATOR MODAL ═══════════ -->
+  <div class="calc-backdrop" id="calc-backdrop" onclick="closeCalculator()"></div>
+  <div class="calc-modal" id="calc-modal">
+    <div class="calc-head">
+      <span class="calc-title">Calculator</span>
+      <button class="calc-close" onclick="closeCalculator()">✕</button>
+    </div>
+    <div class="calc-screen">
+      <div class="calc-expr" id="calc-expr"></div>
+      <div class="calc-display" id="calc-display">0</div>
+    </div>
+    <div class="calc-grid">
+      <button class="calc-btn clear" onclick="calcClearAll()">C</button>
+      <button class="calc-btn" onclick="calcBackspace()">⌫</button>
+      <button class="calc-btn" onclick="calcPercent()">%</button>
+      <button class="calc-btn op" onclick="calcSetOperator('÷')">÷</button>
+
+      <button class="calc-btn" onclick="calcInput('7')">7</button>
+      <button class="calc-btn" onclick="calcInput('8')">8</button>
+      <button class="calc-btn" onclick="calcInput('9')">9</button>
+      <button class="calc-btn op" onclick="calcSetOperator('×')">×</button>
+
+      <button class="calc-btn" onclick="calcInput('4')">4</button>
+      <button class="calc-btn" onclick="calcInput('5')">5</button>
+      <button class="calc-btn" onclick="calcInput('6')">6</button>
+      <button class="calc-btn op" onclick="calcSetOperator('−')">−</button>
+
+      <button class="calc-btn" onclick="calcInput('1')">1</button>
+      <button class="calc-btn" onclick="calcInput('2')">2</button>
+      <button class="calc-btn" onclick="calcInput('3')">3</button>
+      <button class="calc-btn op" onclick="calcSetOperator('+')">+</button>
+
+      <button class="calc-btn" onclick="calcInput('0')" style="grid-column: span 2">0</button>
+      <button class="calc-btn" onclick="calcInput('.')">.</button>
+      <button class="calc-btn eq" onclick="calcEquals()">=</button>
+    </div>
+    <button class="calc-use-btn" id="calc-use-btn" onclick="calcUseResult()">Use in Amount →</button>
+  </div>
 
   <script>
     /* ═══════════════════════════════════════════════
@@ -2203,6 +2577,7 @@
     let activeCat = 'All';
     let donutInst = null;
     let trendInst = null;
+    let dailyInst = null;
 
     const CAT = {
       'Food': '#F87171',
@@ -2262,7 +2637,7 @@
       const indicator = document.getElementById('bb-indicator');
       if (activeTab && indicator) indicator.dataset.idx = activeTab.dataset.idx;
 
-      if (pg === 'analytics') { updateDonut(); updateTrend(); updateHeatmap(); updateCatBars(); }
+      if (pg === 'analytics') { updateDonut(); updateTrend(); updateHeatmap(); updateCatBars(); updateDailyChart(); }
       if (pg === 'history') { buildFilterChips(); renderHistory(); }
     }
 
@@ -2598,6 +2973,77 @@
     }
 
     /* ═══════════════════════════════════════════════
+       MONTHLY DAY-BY-DAY CHART
+    ═══════════════════════════════════════════════ */
+    function updateDailyChart() {
+      const [y, m] = period.split('-').map(Number);
+      const days = new Date(y, m, 0).getDate();
+      const f = filterPeriod();
+
+      const spentByDay = new Array(days + 1).fill(0);
+      const savedByDay = new Array(days + 1).fill(0);
+      f.forEach(e => {
+        const dk = e.date.getDate();
+        if (e.category === 'Savings') savedByDay[dk] += e.amount;
+        else spentByDay[dk] += e.amount;
+      });
+
+      const labels = Array.from({ length: days }, (_, i) => i + 1);
+      const spentData = labels.map(d => spentByDay[d]);
+      const savedData = labels.map(d => savedByDay[d]);
+
+      document.getElementById('daily-month-label').textContent =
+        new Date(y, m - 1, 1).toLocaleString('en-IN', { month: 'long', year: 'numeric' });
+
+      const ctx = document.getElementById('daily-chart').getContext('2d');
+      if (dailyInst) dailyInst.destroy();
+      dailyInst = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Spent',
+              data: spentData,
+              borderColor: '#d4a843',
+              backgroundColor: 'rgba(212,168,67,0.12)',
+              fill: true,
+              tension: 0.35,
+              pointRadius: 2,
+              pointHoverRadius: 4,
+              pointBackgroundColor: '#d4a843',
+              borderWidth: 2
+            },
+            {
+              label: 'Saved',
+              data: savedData,
+              borderColor: '#3ecf8e',
+              backgroundColor: 'rgba(62,207,142,0.08)',
+              fill: true,
+              tension: 0.35,
+              pointRadius: 2,
+              pointHoverRadius: 4,
+              pointBackgroundColor: '#3ecf8e',
+              borderWidth: 2
+            }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'top', align: 'end', labels: { color: '#8c8799', font: { family: 'Syne', size: 11 }, boxWidth: 9 } },
+            tooltip: { callbacks: { label: c => `  ${c.dataset.label}: ${fmt(c.raw)}` } }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#5e5a6b', font: { family: 'JetBrains Mono', size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 12 } },
+            y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#5e5a6b', font: { family: 'JetBrains Mono', size: 10 }, callback: v => fmtS(v) }, border: { display: false } }
+          }
+        }
+      });
+    }
+
+    /* ═══════════════════════════════════════════════
        INSIGHTS
     ═══════════════════════════════════════════════ */
     function updateInsights(f) {
@@ -2772,7 +3218,7 @@
       else r5.forEach(e => recent.appendChild(makeTxItem(e)));
 
       if (document.getElementById('page-analytics').classList.contains('active')) {
-        updateDonut(); updateTrend(); updateHeatmap(); updateCatBars();
+        updateDonut(); updateTrend(); updateHeatmap(); updateCatBars(); updateDailyChart();
       }
       if (document.getElementById('page-history').classList.contains('active')) {
         buildFilterChips(); renderHistory();
@@ -2796,6 +3242,103 @@
       if (document.getElementById('page-analytics').classList.contains('active')) {
         updateDonut();
       }
+    });
+
+    /* ═══════════════════════════════════════════════
+       FAB — EXPANDABLE ACTION MENU
+    ═══════════════════════════════════════════════ */
+    let fabOpen = false;
+    function toggleFab() {
+      fabOpen = !fabOpen;
+      document.getElementById('fab-menu').classList.toggle('open', fabOpen);
+      document.getElementById('fab-backdrop').classList.toggle('open', fabOpen);
+      document.getElementById('fab').classList.toggle('open', fabOpen);
+    }
+    function closeFab() {
+      fabOpen = false;
+      document.getElementById('fab-menu').classList.remove('open');
+      document.getElementById('fab-backdrop').classList.remove('open');
+      document.getElementById('fab').classList.remove('open');
+    }
+    function fabAddTransaction() {
+      closeFab();
+      goTo('dashboard');
+      setTimeout(() => document.getElementById('exp-amount').focus(), 300);
+    }
+
+    /* ═══════════════════════════════════════════════
+       CALCULATOR
+    ═══════════════════════════════════════════════ */
+    let calcCurrent = '0';
+    let calcPrev = null;
+    let calcOp = null;
+    let calcReset = false;
+
+    function openCalculator() {
+      calcClearAll();
+      document.getElementById('calc-modal').classList.add('open');
+      document.getElementById('calc-backdrop').classList.add('open');
+    }
+    function closeCalculator() {
+      document.getElementById('calc-modal').classList.remove('open');
+      document.getElementById('calc-backdrop').classList.remove('open');
+    }
+    function calcClearAll() {
+      calcCurrent = '0'; calcPrev = null; calcOp = null; calcReset = false;
+      updateCalcDisplay();
+    }
+    function calcBackspace() {
+      calcCurrent = calcCurrent.length > 1 ? calcCurrent.slice(0, -1) : '0';
+      updateCalcDisplay();
+    }
+    function calcPercent() {
+      calcCurrent = String(parseFloat(calcCurrent) / 100);
+      updateCalcDisplay();
+    }
+    function calcInput(val) {
+      if (calcReset) { calcCurrent = '0'; calcReset = false; }
+      if (val === '.' && calcCurrent.includes('.')) return;
+      calcCurrent = (calcCurrent === '0' && val !== '.') ? val : calcCurrent + val;
+      updateCalcDisplay();
+    }
+    function calcSetOperator(op) {
+      if (calcOp && !calcReset) calcEquals();
+      calcPrev = parseFloat(calcCurrent);
+      calcOp = op;
+      calcReset = true;
+      updateCalcDisplay();
+    }
+    function calcEquals() {
+      if (calcOp === null || calcPrev === null) return;
+      const cur = parseFloat(calcCurrent);
+      let res = cur;
+      if (calcOp === '+') res = calcPrev + cur;
+      else if (calcOp === '−') res = calcPrev - cur;
+      else if (calcOp === '×') res = calcPrev * cur;
+      else if (calcOp === '÷') res = cur !== 0 ? calcPrev / cur : 0;
+      calcCurrent = String(parseFloat(res.toFixed(6)));
+      calcOp = null; calcPrev = null; calcReset = true;
+      updateCalcDisplay();
+    }
+    function updateCalcDisplay() {
+      document.getElementById('calc-display').textContent = calcCurrent;
+      document.getElementById('calc-expr').textContent = (calcPrev !== null && calcOp) ? `${calcPrev} ${calcOp}` : '';
+    }
+    function calcUseResult() {
+      const val = parseFloat(calcCurrent);
+      if (!isNaN(val) && val > 0) {
+        document.getElementById('exp-amount').value = val;
+        toast('🧮', `${fmt(val)} added to amount field`);
+        closeCalculator();
+        goTo('dashboard');
+      } else {
+        closeCalculator();
+      }
+    }
+
+    // Escape key closes the FAB menu / calculator, whichever is open
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { closeCalculator(); closeFab(); }
     });
   </script>
 
