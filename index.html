@@ -2707,6 +2707,21 @@
       "The most interesting financial story tonight? Yours — if you log it.",
     ];
 
+    // ── Real push notifications (optional) ──────────────────────────
+    // Without a backend, reminders only fire while this tab is open (see
+    // checkReminderTick below). Deploying /server and setting BACKEND_URL
+    // here switches to real Web Push, which arrives even when the app is
+    // fully closed. See server/README.md for setup + deployment.
+    const BACKEND_URL = ''; // e.g. 'https://your-app.onrender.com' — leave blank to stay in-tab-only
+    const VAPID_PUBLIC_KEY = 'BFn2Tbaivo5aAFdvAkskoSorCXgoxHok7a6iMwcUV7a4mwvz92JvJEeBhnn8QuN5Wa5rSRvzcN8qQQWpFb2HA14';
+    let pushSubscribed = false;
+
+    let deviceId = localStorage.getItem('ss_device_id');
+    if (!deviceId) {
+      deviceId = 'd_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+      localStorage.setItem('ss_device_id', deviceId);
+    }
+
     /* ═══════════════════════════════════════════════
        INIT
     ═══════════════════════════════════════════════ */
@@ -2733,6 +2748,7 @@
 
     // Daily reminder loop — checks every 30s (only while this tab is open) whether
     // it's time to nudge the user, and only if they haven't logged anything today.
+    checkReminderTick();
     setInterval(checkReminderTick, 30000);
 
     /* ═══════════════════════════════════════════════
@@ -2947,6 +2963,7 @@
 
       expenses.unshift({ id: Date.now(), amount: amt, category: cat, note, date, recurring: isRec });
       persist();
+      notifyServerLogged();
 
       const p = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       if (p !== period) { period = p; document.getElementById('month-filter').value = p; }
@@ -3541,6 +3558,7 @@
       }
     }
     function checkReminderTick() {
+      if (pushSubscribed) return; // real server push is handling this — avoid duplicate notifications
       if (!('Notification' in window)) return;
       const s = getReminderSettings();
       if (!s.enabled || Notification.permission !== 'granted') return;
@@ -3548,10 +3566,60 @@
       const [hh, mm] = (s.time || '20:00').split(':').map(Number);
       const tk = todayKey();
       const lastFired = localStorage.getItem('ss_reminder_last');
-      if (now.getHours() === hh && now.getMinutes() === mm && lastFired !== tk && !loggedToday()) {
+      if (lastFired === tk) return; // already reminded today — at most once a day
+
+      // "At or after" the target time (not an exact minute match) — browsers throttle
+      // timers in background/inactive tabs, so an exact-match check can silently miss
+      // its one window for the day. This way, whenever the tab is next active on or
+      // after the target time, it still catches up and fires.
+      const targetMinutes = hh * 60 + mm;
+      const nowMinutes = now.getHours() * 60 + now.getMinutes();
+      if (nowMinutes >= targetMinutes && !loggedToday()) {
         fireReminderNotification();
         localStorage.setItem('ss_reminder_last', tk);
       }
+    }
+
+    // ── Real push subscription (only used when BACKEND_URL is configured) ──
+    function urlBase64ToUint8Array(base64String) {
+      const padding = '='.repeat((4 - base64String.length % 4) % 4);
+      const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+      const rawData = atob(base64);
+      const output = new Uint8Array(rawData.length);
+      for (let i = 0; i < rawData.length; i++) output[i] = rawData.charCodeAt(i);
+      return output;
+    }
+    async function subscribeToPush(time, enabled) {
+      if (!BACKEND_URL || !('serviceWorker' in navigator) || !('PushManager' in window)) return false;
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        let sub = await reg.pushManager.getSubscription();
+        if (!sub) {
+          sub = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+          });
+        }
+        const res = await fetch(`${BACKEND_URL}/api/subscribe`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ deviceId, subscription: sub, time, enabled })
+        });
+        pushSubscribed = res.ok;
+        return res.ok;
+      } catch (err) {
+        console.warn('Push subscription failed, falling back to in-tab reminders:', err);
+        pushSubscribed = false;
+        return false;
+      }
+    }
+    function notifyServerLogged() {
+      if (!BACKEND_URL || !pushSubscribed) return;
+      fetch(`${BACKEND_URL}/api/mark-logged`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deviceId })
+      }).catch(() => { }); // best-effort — never block the UI on this
     }
     function updatePermissionStatus() {
       const el = document.getElementById('reminder-perm-status');
@@ -3562,9 +3630,16 @@
         return;
       }
       const p = Notification.permission;
-      if (p === 'granted') { el.textContent = '✓ Notifications allowed'; el.style.color = 'var(--emerald)'; }
-      else if (p === 'denied') { el.textContent = '✕ Blocked — enable notifications for this site in your browser settings'; el.style.color = 'var(--rose)'; }
-      else { el.textContent = 'Not enabled yet — tap Save to allow'; el.style.color = 'var(--muted2)'; }
+      let base, color;
+      if (p === 'granted') { base = '✓ Notifications allowed'; color = 'var(--emerald)'; }
+      else if (p === 'denied') { base = '✕ Blocked — enable notifications for this site in your browser settings'; color = 'var(--rose)'; }
+      else { base = 'Not enabled yet — tap Save to allow'; color = 'var(--muted2)'; }
+
+      const mode = BACKEND_URL
+        ? (pushSubscribed ? ' · Real push active (works even when closed)' : ' · Push server configured — tap Save to connect')
+        : ' · In-tab mode (fires only while this tab is open)';
+      el.textContent = base + mode;
+      el.style.color = color;
     }
     function openReminderSettings() {
       const s = getReminderSettings();
@@ -3589,9 +3664,18 @@
         if (perm !== 'granted') toast('🔕', 'Notifications blocked — enable them in your browser settings');
       }
       saveReminderSettingsToStore({ enabled, time });
+
+      if (enabled && 'Notification' in window && Notification.permission === 'granted' && BACKEND_URL) {
+        const ok = await subscribeToPush(time, enabled);
+        toast(ok ? '🔔' : '⚠️', ok
+          ? `Real push reminder set for ${time} — works even if the tab is closed`
+          : 'Could not reach the push server — falling back to in-tab reminders');
+      } else {
+        toast('🔔', enabled ? `Daily reminder set for ${time}` : 'Daily reminder turned off');
+      }
+
       updatePermissionStatus();
       closeReminderSettings();
-      toast('🔔', enabled ? `Daily reminder set for ${time}` : 'Daily reminder turned off');
     }
     async function sendTestNotification() {
       if (!('Notification' in window)) { toast('⚠️', 'Notifications aren\'t supported here'); return; }
