@@ -2205,6 +2205,8 @@
       }
     }
   </style>
+  <!-- OneSignal handles real push notifications — see the Daily Reminder settings for setup -->
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 </head>
 
 <body>
@@ -2437,8 +2439,8 @@
           </div>
 
           <div class="card mb">
-            <div class="card-label">Monthly Day-by-Day — <span id="daily-month-label" style="color:var(--text2)"></span>
-            </div>
+            <div class="card-label">Monthly Day-by-Day — <span id="daily-month-label"
+                style="color:var(--text2)"></span></div>
             <div class="chart-box-lg"><canvas id="daily-chart"></canvas></div>
           </div>
 
@@ -2628,8 +2630,9 @@
       <button class="calc-close" onclick="closeReminderSettings()">✕</button>
     </div>
     <p style="font-size:12px;color:var(--muted2);margin-bottom:16px;line-height:1.5">
-      A nudge to log today's spends — with a bit of attitude. 😏 Only fires if you haven't logged anything yet
-      that day.
+      A nudge to log today's spends — with a bit of attitude. 😏 The time below drives the in-tab reminder.
+      If real push (OneSignal) is set up, its daily send time is controlled separately by a GitHub Actions
+      schedule — see server/README.md.
     </p>
     <div class="toggle-row">
       <div id="reminder-toggle" class="tog" onclick="toggleReminderSwitch()"></div>
@@ -2708,19 +2711,13 @@
     ];
 
     // ── Real push notifications (optional) ──────────────────────────
-    // Without a backend, reminders only fire while this tab is open (see
-    // checkReminderTick below). Deploying /server and setting BACKEND_URL
-    // here switches to real Web Push, which arrives even when the app is
-    // fully closed. See server/README.md for setup + deployment.
-    const BACKEND_URL = ''; // e.g. 'https://your-app.onrender.com' — leave blank to stay in-tab-only
-    const VAPID_PUBLIC_KEY = 'BFn2Tbaivo5aAFdvAkskoSorCXgoxHok7a6iMwcUV7a4mwvz92JvJEeBhnn8QuN5Wa5rSRvzcN8qQQWpFb2HA14';
+    // Without this, reminders only fire while this tab is open (see
+    // checkReminderTick below). Setting ONESIGNAL_APP_ID switches to real
+    // push via OneSignal (free, no server to run) — the actual daily send
+    // is triggered by a GitHub Actions workflow, not by this page. See
+    // server/README.md → "OneSignal setup" for the full walkthrough.
+    const ONESIGNAL_APP_ID = 'be6b95a0-b574-455e-8966-a088190ca1e7';
     let pushSubscribed = false;
-
-    let deviceId = localStorage.getItem('ss_device_id');
-    if (!deviceId) {
-      deviceId = 'd_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
-      localStorage.setItem('ss_device_id', deviceId);
-    }
 
     /* ═══════════════════════════════════════════════
        INIT
@@ -2739,11 +2736,24 @@
     // Service worker registration — required on many mobile browsers (e.g. Android Chrome)
     // to show real OS-level notifications via registration.showNotification().
     // Note: this needs the page served over http(s)/localhost — it silently no-ops on file://.
+    // Skipped entirely when OneSignal is configured — their SDK registers its own service
+    // worker at the same scope, and running both would conflict.
     let swRegistration = null;
-    if ('serviceWorker' in navigator) {
+    if (!ONESIGNAL_APP_ID && 'serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js')
         .then(reg => { swRegistration = reg; })
         .catch(err => console.warn('Service worker registration failed (notifications will fall back):', err));
+    }
+
+    // Real push via OneSignal — subscribes silently if the user already granted
+    // permission in a previous session, so pushSubscribed stays accurate on reload.
+    if (ONESIGNAL_APP_ID) {
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      OneSignalDeferred.push(async function (OneSignal) {
+        await OneSignal.init({ appId: ONESIGNAL_APP_ID });
+        pushSubscribed = OneSignal.Notifications.permission === true;
+        updatePermissionStatus();
+      });
     }
 
     // Daily reminder loop — checks every 30s (only while this tab is open) whether
@@ -3580,46 +3590,34 @@
       }
     }
 
-    // ── Real push subscription (only used when BACKEND_URL is configured) ──
-    function urlBase64ToUint8Array(base64String) {
-      const padding = '='.repeat((4 - base64String.length % 4) % 4);
-      const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-      const rawData = atob(base64);
-      const output = new Uint8Array(rawData.length);
-      for (let i = 0; i < rawData.length; i++) output[i] = rawData.charCodeAt(i);
-      return output;
-    }
-    async function subscribeToPush(time, enabled) {
-      if (!BACKEND_URL || !('serviceWorker' in navigator) || !('PushManager' in window)) return false;
+    // ── Real push subscription via OneSignal (only used when ONESIGNAL_APP_ID is set) ──
+    async function subscribeToPush() {
+      if (!ONESIGNAL_APP_ID || !window.OneSignalDeferred) return false;
       try {
-        const reg = await navigator.serviceWorker.ready;
-        let sub = await reg.pushManager.getSubscription();
-        if (!sub) {
-          sub = await reg.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        let ok = false;
+        await new Promise((resolve) => {
+          OneSignalDeferred.push(async function (OneSignal) {
+            const granted = await OneSignal.Notifications.requestPermission();
+            ok = granted === true || OneSignal.Notifications.permission === true;
+            resolve();
           });
-        }
-        const res = await fetch(`${BACKEND_URL}/api/subscribe`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ deviceId, subscription: sub, time, enabled })
         });
-        pushSubscribed = res.ok;
-        return res.ok;
+        pushSubscribed = ok;
+        return ok;
       } catch (err) {
-        console.warn('Push subscription failed, falling back to in-tab reminders:', err);
+        console.warn('OneSignal subscription failed, falling back to in-tab reminders:', err);
         pushSubscribed = false;
         return false;
       }
     }
     function notifyServerLogged() {
-      if (!BACKEND_URL || !pushSubscribed) return;
-      fetch(`${BACKEND_URL}/api/mark-logged`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ deviceId })
-      }).catch(() => { }); // best-effort — never block the UI on this
+      // Optional: tags the subscriber with today's date so a GitHub Actions
+      // workflow could filter them out of the daily send (see server/README.md).
+      // Safe no-op if OneSignal isn't configured or the tag call fails.
+      if (!ONESIGNAL_APP_ID || !pushSubscribed || !window.OneSignalDeferred) return;
+      OneSignalDeferred.push(async function (OneSignal) {
+        try { await OneSignal.User.addTag('lastLogged', todayKey()); } catch (e) { /* best-effort */ }
+      });
     }
     function updatePermissionStatus() {
       const el = document.getElementById('reminder-perm-status');
@@ -3635,8 +3633,8 @@
       else if (p === 'denied') { base = '✕ Blocked — enable notifications for this site in your browser settings'; color = 'var(--rose)'; }
       else { base = 'Not enabled yet — tap Save to allow'; color = 'var(--muted2)'; }
 
-      const mode = BACKEND_URL
-        ? (pushSubscribed ? ' · Real push active (works even when closed)' : ' · Push server configured — tap Save to connect')
+      const mode = ONESIGNAL_APP_ID
+        ? (pushSubscribed ? ' · Real push active via OneSignal (works even when closed)' : ' · OneSignal configured — tap Save to connect')
         : ' · In-tab mode (fires only while this tab is open)';
       el.textContent = base + mode;
       el.style.color = color;
@@ -3659,18 +3657,20 @@
     async function saveReminderSettingsUI() {
       const enabled = document.getElementById('reminder-toggle').classList.contains('on');
       const time = document.getElementById('reminder-time').value || '20:00';
-      if (enabled && 'Notification' in window && Notification.permission === 'default') {
-        const perm = await Notification.requestPermission();
-        if (perm !== 'granted') toast('🔕', 'Notifications blocked — enable them in your browser settings');
-      }
       saveReminderSettingsToStore({ enabled, time });
 
-      if (enabled && 'Notification' in window && Notification.permission === 'granted' && BACKEND_URL) {
-        const ok = await subscribeToPush(time, enabled);
+      if (enabled && ONESIGNAL_APP_ID) {
+        // OneSignal owns the permission prompt here — calling the raw Notification
+        // API too would risk a double-prompt.
+        const ok = await subscribeToPush();
         toast(ok ? '🔔' : '⚠️', ok
-          ? `Real push reminder set for ${time} — works even if the tab is closed`
-          : 'Could not reach the push server — falling back to in-tab reminders');
+          ? 'Real push enabled via OneSignal — works even if the tab is closed'
+          : 'Could not connect to OneSignal — falling back to in-tab reminders');
       } else {
+        if (enabled && 'Notification' in window && Notification.permission === 'default') {
+          const perm = await Notification.requestPermission();
+          if (perm !== 'granted') toast('🔕', 'Notifications blocked — enable them in your browser settings');
+        }
         toast('🔔', enabled ? `Daily reminder set for ${time}` : 'Daily reminder turned off');
       }
 
@@ -3681,6 +3681,7 @@
       if (!('Notification' in window)) { toast('⚠️', 'Notifications aren\'t supported here'); return; }
       if (Notification.permission === 'granted') {
         fireReminderNotification();
+        if (ONESIGNAL_APP_ID) toast('ℹ️', 'That was a local preview — test the real OneSignal push via your GitHub Actions workflow\u2019s "Run workflow" button');
       } else if (Notification.permission === 'default') {
         const perm = await Notification.requestPermission();
         updatePermissionStatus();
