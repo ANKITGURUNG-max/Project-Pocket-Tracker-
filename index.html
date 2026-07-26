@@ -2215,18 +2215,7 @@
   </style>
   <!-- OneSignal handles real push notifications — see the Daily Reminder settings for setup -->
   <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-  <script>
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-    OneSignalDeferred.push(async function (OneSignal) {
-      await OneSignal.init({
-        appId: "fc4e5fa8-d4cb-4263-ad46-34410f2bd37b",
-        safari_web_id: "web.onesignal.auto.20cc36d3-e742-47b9-8fc8-37c27a32926f",
-        notifyButton: {
-          enable: true,
-        },
-      });
-    });
-  </script>
+  
 </head>
 
 <body>
@@ -2738,7 +2727,7 @@
     // push via OneSignal (free, no server to run) — the actual daily send
     // is triggered by a GitHub Actions workflow, not by this page. See
     // server/README.md → "OneSignal setup" for the full walkthrough.
-    const ONESIGNAL_APP_ID = '';
+    const ONESIGNAL_APP_ID = 'fc4e5fa8-d4cb-4263-ad46-34410f2bd37b';
     let pushSubscribed = false;
 
     /* ═══════════════════════════════════════════════
