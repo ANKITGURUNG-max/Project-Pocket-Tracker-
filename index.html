@@ -2215,6 +2215,18 @@
   </style>
   <!-- OneSignal handles real push notifications — see the Daily Reminder settings for setup -->
   <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function (OneSignal) {
+      await OneSignal.init({
+        appId: "be6b95a0-b574-455e-8966-a088190ca1e7",
+        safari_web_id: "web.onesignal.auto.1f868039-39c5-4cdf-b63f-2c8777cb9e04",
+        notifyButton: {
+          enable: true,
+        },
+      });
+    });
+  </script>
 </head>
 
 <body>
@@ -2726,7 +2738,7 @@
     // push via OneSignal (free, no server to run) — the actual daily send
     // is triggered by a GitHub Actions workflow, not by this page. See
     // server/README.md → "OneSignal setup" for the full walkthrough.
-    const ONESIGNAL_APP_ID = 'be6b95a0-b574-455e-8966-a088190ca1e7';
+    const ONESIGNAL_APP_ID = '';
     let pushSubscribed = false;
 
     /* ═══════════════════════════════════════════════
@@ -3566,23 +3578,27 @@
       }
     }
     function checkReminderTick() {
-      if (pushSubscribed) return; // real server push is handling this — avoid duplicate notifications
+      if (pushSubscribed) return; // real server push is handling this
       if (!('Notification' in window)) return;
+
       const s = getReminderSettings();
       if (!s.enabled || Notification.permission !== 'granted') return;
+
       const now = new Date();
       const [hh, mm] = (s.time || '20:00').split(':').map(Number);
       const tk = todayKey();
-      const lastFired = localStorage.getItem('ss_reminder_last');
-      if (lastFired === tk) return; // already reminded today — at most once a day
 
-      // "At or after" the target time (not an exact minute match) — browsers throttle
-      // timers in background/inactive tabs, so an exact-match check can silently miss
-      // its one window for the day. This way, whenever the tab is next active on or
-      // after the target time, it still catches up and fires.
+      // This ensures it only spams them ONCE per day when the time hits, 
+      // otherwise they will get a new notification every 30 seconds until midnight.
+      const lastFired = localStorage.getItem('ss_reminder_last');
+      if (lastFired === tk) return;
+
       const targetMinutes = hh * 60 + mm;
       const nowMinutes = now.getHours() * 60 + now.getMinutes();
-      if (nowMinutes >= targetMinutes && !loggedToday()) {
+
+      // CHANGED: Removed "&& !loggedToday()"
+      // Now it fires purely based on the clock, no matter what they've done today.
+      if (nowMinutes >= targetMinutes) {
         fireReminderNotification();
         localStorage.setItem('ss_reminder_last', tk);
       }
