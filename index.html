@@ -1879,6 +1879,14 @@
       box-shadow: 0 4px 30px rgba(212, 168, 67, 0.35);
     }
 
+    /* FIX: visible "working" state so the button never looks dead while an
+       async step (e.g. talking to OneSignal) is in flight */
+    .calc-use-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
     @media (min-width: 769px) {
       .calc-modal {
         bottom: auto;
@@ -2439,8 +2447,8 @@
           </div>
 
           <div class="card mb">
-            <div class="card-label">Monthly Day-by-Day — <span id="daily-month-label"
-                style="color:var(--text2)"></span></div>
+            <div class="card-label">Monthly Day-by-Day — <span id="daily-month-label" style="color:var(--text2)"></span>
+            </div>
             <div class="chart-box-lg"><canvas id="daily-chart"></canvas></div>
           </div>
 
@@ -2645,7 +2653,9 @@
       <input type="time" id="reminder-time" class="inp" value="20:00" />
     </div>
     <div id="reminder-perm-status" style="font-size:11px;color:var(--muted2);margin:12px 0 16px"></div>
-    <button class="calc-use-btn" onclick="saveReminderSettingsUI()">Save Reminder</button>
+    <!-- FIX: added id so saveReminderSettingsUI() can show a "Saving…" state instead of
+         appearing frozen while it waits on the OneSignal handshake -->
+    <button class="calc-use-btn" id="save-reminder-btn" onclick="saveReminderSettingsUI()">Save Reminder</button>
     <button class="ctrl-btn" style="width:100%;margin-top:8px;text-align:center" onclick="sendTestNotification()">🔔
       Send Test Notification</button>
   </div>
@@ -2899,7 +2909,6 @@
     /* ═══════════════════════════════════════════════
        DELETE & UNDO SYSTEM
     ═══════════════════════════════════════════════ */
-    // 1. Double-click to confirm removal preventing accidental deletes
     function handleDeleteClick(btn, id) {
       if (btn.classList.contains('confirming')) {
         clearTimeout(btn.dataset.tid);
@@ -2916,18 +2925,15 @@
       }
     }
 
-    // 2. Perform delete and spawn custom Undo toast
     function del(id) {
       const index = expenses.findIndex(e => e.id === id);
       if (index === -1) return;
 
-      // Keep record of it and remove it temporarily
       const tx = expenses[index];
       expenses.splice(index, 1);
       persist();
       render();
 
-      // Spawn custom toast with Undo button
       const wrap = document.getElementById('toasts');
       const el = document.createElement('div');
       el.className = 'toast';
@@ -2944,15 +2950,12 @@
         setTimeout(() => el.remove(), 280);
       };
 
-      // 5-second timer to undo
       const tId = setTimeout(() => {
         if (!isUndone) removeToast();
       }, 5000);
 
-      // Restore transaction if undone
       el.querySelector('.undo-btn').onclick = () => {
         isUndone = true;
-        // Insert it right back into its original index
         expenses.splice(index, 0, tx);
         persist();
         render();
@@ -3032,7 +3035,6 @@
       const data = labels.map(k => totals[k]);
       const colors = labels.map(k => CAT[k]);
 
-      // On mobile & smaller desktop (portrait), put legend below the chart so the donut has full width
       const isMobile = window.innerWidth <= 992;
       const legendPos = isMobile ? 'bottom' : 'right';
 
@@ -3388,13 +3390,11 @@
       const pct = Math.min((ts / budget) * 100, 100);
       const fillClass = pct >= 90 ? ' danger' : pct >= 70 ? ' warn' : '';
 
-      // Sidebar budget
       document.getElementById('sb-fill').style.width = pct + '%';
       document.getElementById('sb-fill').className = 'sb-budget-fill' + fillClass;
       document.getElementById('sb-spent').textContent = fmtS(ts);
       document.getElementById('sb-total').textContent = '/ ' + fmtS(budget);
 
-      // Mobile budget bar
       document.getElementById('mob-fill').style.width = pct + '%';
       document.getElementById('mob-fill').className = 'mob-budget-fill' + fillClass;
       document.getElementById('mob-spent').textContent = fmtS(ts);
@@ -3418,7 +3418,6 @@
 
     render();
 
-    // Keyboard shortcuts
     document.getElementById('sb-budget-inp').addEventListener('keydown', e => {
       if (e.key === 'Enter') saveBudgetInline();
       if (e.key === 'Escape') closeBudgetEdit();
@@ -3428,7 +3427,6 @@
       if (e.key === 'Escape') closeMobBudgetEdit();
     });
 
-    // Re-render donut on orientation change so legend flips side↔bottom correctly
     window.addEventListener('resize', () => {
       if (document.getElementById('page-analytics').classList.contains('active')) {
         updateDonut();
@@ -3591,17 +3589,32 @@
     }
 
     // ── Real push subscription via OneSignal (only used when ONESIGNAL_APP_ID is set) ──
+    // FIX: the original version only wrapped a raw `new Promise(...)` around the
+    // OneSignalDeferred.push callback, with nothing to ever resolve it if OneSignal's
+    // SDK failed to load, was blocked (ad-blockers commonly block onesignal.com), or
+    // the app ID wasn't registered for this domain. That left the promise hanging
+    // forever, so `await subscribeToPush()` in saveReminderSettingsUI() below never
+    // returned — the Save Reminder button would just sit there looking dead, with no
+    // toast and no way to close the modal. Racing it against a timeout guarantees this
+    // always resolves one way or another.
     async function subscribeToPush() {
       if (!ONESIGNAL_APP_ID || !window.OneSignalDeferred) return false;
       try {
         let ok = false;
-        await new Promise((resolve) => {
-          OneSignalDeferred.push(async function (OneSignal) {
-            const granted = await OneSignal.Notifications.requestPermission();
-            ok = granted === true || OneSignal.Notifications.permission === true;
-            resolve();
-          });
-        });
+        await Promise.race([
+          new Promise((resolve) => {
+            OneSignalDeferred.push(async function (OneSignal) {
+              try {
+                const granted = await OneSignal.Notifications.requestPermission();
+                ok = granted === true || OneSignal.Notifications.permission === true;
+              } catch (innerErr) {
+                console.warn('OneSignal requestPermission failed:', innerErr);
+              }
+              resolve();
+            });
+          }),
+          new Promise((resolve) => setTimeout(resolve, 8000)) // safety timeout — never hang the UI
+        ]);
         pushSubscribed = ok;
         return ok;
       } catch (err) {
@@ -3611,9 +3624,6 @@
       }
     }
     function notifyServerLogged() {
-      // Optional: tags the subscriber with today's date so a GitHub Actions
-      // workflow could filter them out of the daily send (see server/README.md).
-      // Safe no-op if OneSignal isn't configured or the tag call fails.
       if (!ONESIGNAL_APP_ID || !pushSubscribed || !window.OneSignalDeferred) return;
       OneSignalDeferred.push(async function (OneSignal) {
         try { await OneSignal.User.addTag('lastLogged', todayKey()); } catch (e) { /* best-effort */ }
@@ -3654,29 +3664,46 @@
     function toggleReminderSwitch() {
       document.getElementById('reminder-toggle').classList.toggle('on');
     }
+
+    // FIX: added a "Saving…" disabled state on the button (via try/finally) so it's
+    // never ambiguous whether the click registered while the OneSignal step (or the
+    // native permission prompt) is in flight — and it always re-enables itself even
+    // if something throws.
     async function saveReminderSettingsUI() {
-      const enabled = document.getElementById('reminder-toggle').classList.contains('on');
-      const time = document.getElementById('reminder-time').value || '20:00';
-      saveReminderSettingsToStore({ enabled, time });
+      const btn = document.getElementById('save-reminder-btn');
+      const originalLabel = btn ? btn.textContent : null;
+      if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
 
-      if (enabled && ONESIGNAL_APP_ID) {
-        // OneSignal owns the permission prompt here — calling the raw Notification
-        // API too would risk a double-prompt.
-        const ok = await subscribeToPush();
-        toast(ok ? '🔔' : '⚠️', ok
-          ? 'Real push enabled via OneSignal — works even if the tab is closed'
-          : 'Could not connect to OneSignal — falling back to in-tab reminders');
-      } else {
-        if (enabled && 'Notification' in window && Notification.permission === 'default') {
-          const perm = await Notification.requestPermission();
-          if (perm !== 'granted') toast('🔕', 'Notifications blocked — enable them in your browser settings');
+      try {
+        const enabled = document.getElementById('reminder-toggle').classList.contains('on');
+        const time = document.getElementById('reminder-time').value || '20:00';
+        saveReminderSettingsToStore({ enabled, time });
+
+        if (enabled && ONESIGNAL_APP_ID) {
+          // OneSignal owns the permission prompt here — calling the raw Notification
+          // API too would risk a double-prompt.
+          const ok = await subscribeToPush();
+          toast(ok ? '🔔' : '⚠️', ok
+            ? 'Real push enabled via OneSignal — works even if the tab is closed'
+            : 'Could not connect to OneSignal — falling back to in-tab reminders');
+        } else {
+          if (enabled && 'Notification' in window && Notification.permission === 'default') {
+            const perm = await Notification.requestPermission();
+            if (perm !== 'granted') toast('🔕', 'Notifications blocked — enable them in your browser settings');
+          }
+          toast('🔔', enabled ? `Daily reminder set for ${time}` : 'Daily reminder turned off');
         }
-        toast('🔔', enabled ? `Daily reminder set for ${time}` : 'Daily reminder turned off');
-      }
 
-      updatePermissionStatus();
-      closeReminderSettings();
+        updatePermissionStatus();
+        closeReminderSettings();
+      } catch (err) {
+        console.warn('Failed to save reminder settings:', err);
+        toast('⚠️', 'Something went wrong saving your reminder — please try again');
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = originalLabel; }
+      }
     }
+
     async function sendTestNotification() {
       if (!('Notification' in window)) { toast('⚠️', 'Notifications aren\'t supported here'); return; }
       if (Notification.permission === 'granted') {
